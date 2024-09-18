@@ -10,7 +10,7 @@ import (
 )
 
 func showIndexPage(c *gin.Context) {
-	title := c.Query("title")
+	title := c.Query("callname")
 	if title != "" {
 		cards, err := models.FindCallCards(title)
 		if err != nil {
