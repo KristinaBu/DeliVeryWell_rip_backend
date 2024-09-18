@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@400..800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="stylesheet" href="../static/css/variables.css">
+    <style>
+
+        .main-center-card {
+            width: 483px;
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .full-card-content {
+            font-size: 20px;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
+            white-space: normal;
+
+        }
+        .big-img {
+            width: 308px;
+            height: 308px;
+            border-radius: 20px;
+            object-fit: cover;
+        }
+    </style>
+
+</head>
+<body>
+
+
+{{ template "header.html" .}}
+
+<div class="main-center-card">
+
+    <div class="title">
+        {{.payload.Title}}
+    </div>
+    <div class="price">
+        {{.payload.Price}} руб.
+    </div>
+    <img src="/static/{{.payload.ID}}.png" class="big-img">
+    <div class="title">
+        Работа:
+    </div>
+    <div class="full-card-content">
+        {{.payload.Content}}
+    </div>
+
+</div>
+
+
+{{ template "basket.html" . }}
+
+</body>
+</html>

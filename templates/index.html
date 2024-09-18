@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@400..800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="stylesheet" href="../static/css/variables.css">
+
+</head>
+<body>
+
+
+{{ template "header.html" .}}
+
+<div class="main-container">
+
+
+
+    <form class="search-container" action="/" method="get">
+
+        <input class="search" type="text" name="title" placeholder="Поиск" value="{{ .SearchTitle }}">
+        <input  class="search-button" type="submit" value="Найти">
+    </form>
+
+    <div class="card-group">
+        {{range .payload }}
+        <div class="card" href="/card/{{.ID}}">
+            <img src="/static/{{.ID}}.png" class="image">
+            <div class="info">
+                <div class="title">
+                    {{.Title}}
+
+                </div>
+                <div class="price">
+                    {{.Price}} руб.
+                </div>
+                    <button class="info-button" onclick="window.location.href = '/card/{{.ID}}';">
+                        Подробнее об услуге
+                    </button>
+
+            </div>
+        </div>
+
+        {{end}}
+    </div>
+
+    {{ template "basket.html" . }}
+</div>
+
+
+</body>
+</html>

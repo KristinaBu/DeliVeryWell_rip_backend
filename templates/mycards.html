@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@400..800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/css/style.css">
+
+    <style>
+        .my-card-group {
+            display: grid;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        .card {
+            flex-grow: 1;
+            background-color: var(--card-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: row;
+            border-radius: 16px;
+        }
+        .my-card-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            gap: 32px;
+        }
+        .request-info-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 32px;
+        }
+        .data-address {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: row;
+            gap: 32px;
+        }
+        .request-info, .delivery-text{
+            flex-grow: 1;
+            background-color: var(--card-color);
+            border-radius: 16px;
+            border: 0;
+            font-size: 20px;
+            padding: 10px 32px;
+        }
+
+        .delivery-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 32px;
+        }
+        .delivery-text {
+            background-color: transparent;
+            flex-grow: 1;
+        }
+        .add-container{
+            display: grid;
+            grid-template-columns: repeat(1, 3fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .add-button {
+            width: 45px;
+            height: 45px;
+            border-color: var(--grey-but-color);
+            border-radius: 14px;
+            padding: 10px;
+            background-color: var(--card-color);
+        }
+        .add-text {
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+
+    </style>
+</head>
+<body>
+
+{{ template "header.html" .}}
+
+<div class="main-container">
+
+
+    <div class="request-info-container">
+        <div class="data-address">
+            <div class="request-info">
+                12.12.2024
+            </div>
+            <div class="request-info">
+                Москва, ул Бауманская, д 4, кв 3
+            </div>
+        </div>
+
+        <div class="delivery-container">
+
+                <div class="delivery-text"> Ваш курьер:</div>
+                <div class="request-info">
+                    Буйдина К.А.
+                </div>
+
+        </div>
+    </div>
+
+
+    <div class="my-card-group">
+        {{range .payload }}
+        <div class="my-card-container">
+            <div class="card">
+                <img src="/static/{{.ID}}.png" class="image">
+                <div class="info">
+                    <div class="title">
+                        {{.Title}}
+                    </div>
+                    <div class="price">
+                        {{.Price}} руб.
+                    </div>
+                    <button class="info-button" onclick="window.location.href = '/card/{{.ID}}';">
+                        Подробнее об услуге
+                    </button>
+                </div>
+            </div>
+            <div class="add-container">
+                <button class="add-button">+</button>
+                <div class="add-text">
+                    1
+                </div>
+                <button class="add-button">-</button>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+    {{.NoCards}}
+</div>
+
+</body>
+</html>
