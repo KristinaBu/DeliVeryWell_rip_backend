@@ -148,7 +148,6 @@ body {
 
 .basket-container {
     color: var(--green-color);
-    margin: 56px;
-    margin-left: auto;
+    margin-left: 56px;
 
 }

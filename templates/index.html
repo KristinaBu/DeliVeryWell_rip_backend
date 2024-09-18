@@ -21,7 +21,7 @@
 
     <form class="search-container" action="/" method="get">
 
-        <input class="search" type="text" name="title" placeholder="Поиск" value="{{ .SearchTitle }}">
+        <input class="search" type="text" name="callname" placeholder="Поиск" value="{{ .SearchTitle }}">
         <input  class="search-button" type="submit" value="Найти">
     </form>
 
@@ -37,7 +37,7 @@
                 <div class="price">
                     {{.Price}} руб.
                 </div>
-                    <button class="info-button" onclick="window.location.href = '/card/{{.ID}}';">
+                    <button class="info-button" onclick="window.location.href = '/aboutcall/{{.ID}}';">
                         Подробнее об услуге
                     </button>
 
