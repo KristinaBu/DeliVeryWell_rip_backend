@@ -10,25 +10,31 @@ import (
 )
 
 func showIndexPage(c *gin.Context) {
-	title := c.Query("callname")
-	if title != "" {
-		cards, err := models.FindCallCards(title)
+	priceFrom := c.Query("price_from")
+	priceUp := c.Query("price_up")
+
+	if priceFrom != "" && priceUp != "" {
+		// валидация. Надо ее раньше сделать или нет?
+		cards, err := models.FindCallCardsByPrice(priceFrom, priceUp)
 		if err != nil {
 			render.Render(c, "index.html", gin.H{
-				"NoCards":     "No cards :(",
-				"SearchTitle": title,
+				"NoCards":    "Некорректный запрос",
+				"SearchFrom": priceFrom,
+				"SearchUp":   priceUp,
 			})
 		} else {
 			render.Render(c, "index.html", gin.H{
-				"payload":     cards,
-				"SearchTitle": title,
+				"payload":    cards,
+				"SearchFrom": priceFrom,
+				"SearchUp":   priceUp,
 			})
 		}
 	} else {
 		cards := models.GetAllCards()
 		render.Render(c, "index.html", gin.H{
-			"payload":     cards,
-			"SearchTitle": "",
+			"payload":    cards,
+			"SearchFrom": "",
+			"SearchUp":   "",
 		})
 	}
 }
@@ -58,9 +64,13 @@ func getCallCard(c *gin.Context) {
 }
 
 func getMyCallCards(c *gin.Context) {
-	cards := models.GetMyCallCards()
-
-	render.Render(c, "mycards.html", gin.H{
-		"payload": cards,
-	})
+	if callRequestId, err := strconv.Atoi(c.Param("callrequest_id")); err == nil {
+		callRequest := models.GetMyCallCards(callRequestId)
+		render.Render(c, "mycards.html", gin.H{
+			"payload":      callRequest.Cards,
+			"Data":         callRequest.Data,
+			"Address":      callRequest.Address,
+			"DeliveryName": callRequest.DeliveryName,
+		})
+	}
 }

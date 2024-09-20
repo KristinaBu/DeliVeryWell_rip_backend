@@ -2,15 +2,23 @@ package models
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 )
 
 type callcenterCard struct {
-	ID       int    `json:"id"`
-	Title    string `json:"title"`
-	Price    int    `json:"price"`
-	Content  string `json:"content"`
-	InBasket bool   `json:"in_basket"`
+	ID      int    `json:"id"`
+	Title   string `json:"title"`
+	Price   int    `json:"price"`
+	Content string `json:"content"`
+	Count   int    `json:"count"`
+}
+
+type callcenterRequest struct {
+	Cards        []callcenterCard `json:"cards"`
+	Data         string           `json:"data"`
+	Address      string           `json:"address"`
+	DeliveryName string           `json:"delivery-name"`
 }
 
 var callcenterCardlist = []callcenterCard{
@@ -21,9 +29,16 @@ var callcenterCardlist = []callcenterCard{
 	{ID: 5, Title: "Суши", Price: 200, Content: "Доставка суши в Москве 200 рублей. При покупке товара от 500 рублей - доставка 100 рублей (Суши Мастер)"},
 }
 
-var callcenterMyCardlist = []callcenterCard{
-	{ID: 2, Title: "Спортивные товары", Price: 430, Content: "Доставка спортивных товаров: спортивные принадлежности (резинки, гантели) и спортивное оборудование (шведские стенки) от 430 рублей"},
-	{ID: 3, Title: "Пицца", Price: 149, Content: "Доставка пиццы из ресторанов ДоДо, Maestrello, FoodBand от 149 рублей. При покупке от 4х штук - доставка 59 рублей"},
+var callcenterMyRequestCardlist = map[int]callcenterRequest{
+	1: {
+		Cards: []callcenterCard{
+			{ID: 2, Title: "Спортивные товары", Price: 430, Content: "Доставка спортивных товаров: спортивные принадлежности (резинки, гантели) и спортивное оборудование (шведские стенки) от 430 рублей", Count: 3},
+			{ID: 3, Title: "Пицца", Price: 149, Content: "Доставка пиццы из ресторанов ДоДо, Maestrello, FoodBand от 149 рублей. При покупке от 4х штук - доставка 59 рублей", Count: 1},
+		},
+		Data:         "12.12.2024",
+		Address:      "Москва, ул Бауманская, д 4, кв 3",
+		DeliveryName: "Буйдина К.А.",
+	},
 }
 
 func GetAllCards() []callcenterCard {
@@ -39,8 +54,8 @@ func GetCallCardByID(id int) (*callcenterCard, error) {
 	return nil, errors.New("Card not found")
 }
 
-func GetMyCallCards() []callcenterCard {
-	return callcenterMyCardlist
+func GetMyCallCards(callRequestId int) callcenterRequest {
+	return callcenterMyRequestCardlist[callRequestId]
 }
 
 func FindCallCards(title string) ([]callcenterCard, error) {
@@ -55,4 +70,23 @@ func FindCallCards(title string) ([]callcenterCard, error) {
 		return findCards, nil
 	}
 	return nil, errors.New("Find no cards")
+}
+
+func FindCallCardsByPrice(priceFrom, priceUp string) ([]callcenterCard, error) {
+	findCards := []callcenterCard{}
+	priceFromInt, _ := strconv.Atoi(priceFrom)
+	priceUpInt, _ := strconv.Atoi(priceUp)
+	// они неверные
+	if priceUpInt < priceFromInt {
+		return nil, errors.New("неверные параметры поиска")
+	}
+	for _, card := range callcenterCardlist {
+		if card.Price <= priceUpInt && card.Price >= priceFromInt {
+			findCards = append(findCards, card)
+		}
+	}
+	if len(findCards) > 0 {
+		return findCards, nil
+	}
+	return nil, errors.New("find no cards")
 }

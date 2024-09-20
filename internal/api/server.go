@@ -6,6 +6,10 @@ import (
 	"log"
 )
 
+// TODO: -
+// TODO: -
+// TODO: - оставить один рендер. Все условия через переменные. В контроллере передавать ид заявки и количество (считать)
+
 func StartServer() {
 	log.Println("Server start up")
 

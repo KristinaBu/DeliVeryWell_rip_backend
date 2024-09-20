@@ -69,6 +69,7 @@
             margin: 10px 0;
         }
         .add-button {
+            visibility: hidden;
             width: 45px;
             height: 45px;
             border-color: var(--grey-but-color);
@@ -100,10 +101,10 @@
     <div class="request-info-container">
         <div class="data-address">
             <div class="request-info">
-                12.12.2024
+                {{ .Data }}
             </div>
             <div class="request-info">
-                Москва, ул Бауманская, д 4, кв 3
+                {{ .Address }}
             </div>
         </div>
 
@@ -111,7 +112,7 @@
 
                 <div class="delivery-text"> Ваш курьер:</div>
                 <div class="request-info">
-                    Буйдина К.А.
+                    {{ .DeliveryName }}
                 </div>
 
         </div>
@@ -138,7 +139,7 @@
             <div class="add-container">
                 <button class="add-button">+</button>
                 <div class="add-text">
-                    1
+                    {{ .Count }}
                 </div>
                 <button class="add-button">-</button>
             </div>

@@ -50,7 +50,7 @@
     <div class="price">
         {{.payload.Price}} руб.
     </div>
-    <img src="http://127.0.0.1:9000/images/{{.ID}}.png "  class="big-img">
+    <img src="http://127.0.0.1:9000/images/{{.payload.ID}}.png "  class="big-img">
     <div class="title">
         Работа:
     </div>
@@ -60,9 +60,6 @@
 
 </div>
 
-<div class="main-container">
-{{ template "basket.html" . }}
-</div>
 
 </body>
 </html>

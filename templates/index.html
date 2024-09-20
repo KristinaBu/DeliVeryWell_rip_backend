@@ -20,12 +20,18 @@
 
 
     <form class="search-container" action="/" method="get">
-
-        <input class="search" type="text" name="callname" placeholder="Поиск" value="{{ .SearchTitle }}">
+        <input class="search" type="text" name="price_from" placeholder="Поиск" value="{{ .SearchFrom }}">
+        <input class="search" type="text" name="price_up" placeholder="Поиск" value="{{ .SearchUp }}">
         <input  class="search-button" type="submit" value="Найти">
     </form>
 
+    <div class="price">
+        {{.NoCards}}
+    </div>
     <div class="card-group">
+
+
+
         {{range .payload }}
         <div class="card" href="/card/{{.ID}}">
             <img src="http://127.0.0.1:9000/images/{{.ID}}.png " class="image">
@@ -40,10 +46,8 @@
                     <button class="info-button" onclick="window.location.href = '/aboutcall/{{.ID}}';">
                         Подробнее об услуге
                     </button>
-
             </div>
         </div>
-
         {{end}}
     </div>
 

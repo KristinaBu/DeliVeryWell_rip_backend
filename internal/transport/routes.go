@@ -6,6 +6,6 @@ func InitializeRouters(router *gin.Engine) {
 	router.GET("/", showIndexPage)
 
 	router.GET("/aboutcall/:card_id", getCallCard)
-	router.GET("/mycalls", getMyCallCards)
+	router.GET("/mycalls/:callrequest_id", getMyCallCards)
 
 }
