@@ -74,11 +74,14 @@ func FindCallCards(title string) ([]callcenterCard, error) {
 
 func FindCallCardsByPrice(priceFrom, priceUp string) ([]callcenterCard, error) {
 	findCards := []callcenterCard{}
+	if priceFrom == "" && priceUp == "" {
+		return callcenterCardlist, nil
+	}
 	priceFromInt, _ := strconv.Atoi(priceFrom)
 	priceUpInt, _ := strconv.Atoi(priceUp)
 	// они неверные
 	if priceUpInt < priceFromInt {
-		return nil, errors.New("неверные параметры поиска")
+		return nil, errors.New("Неверные параметры поиска")
 	}
 	for _, card := range callcenterCardlist {
 		if card.Price <= priceUpInt && card.Price >= priceFromInt {
@@ -88,5 +91,5 @@ func FindCallCardsByPrice(priceFrom, priceUp string) ([]callcenterCard, error) {
 	if len(findCards) > 0 {
 		return findCards, nil
 	}
-	return nil, errors.New("find no cards")
+	return nil, errors.New("По вашему запросу ничего не найдено")
 }

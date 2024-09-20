@@ -13,30 +13,19 @@ func showIndexPage(c *gin.Context) {
 	priceFrom := c.Query("price_from")
 	priceUp := c.Query("price_up")
 
-	if priceFrom != "" && priceUp != "" {
-		// валидация. Надо ее раньше сделать или нет?
-		cards, err := models.FindCallCardsByPrice(priceFrom, priceUp)
-		if err != nil {
-			render.Render(c, "index.html", gin.H{
-				"NoCards":    "Некорректный запрос",
-				"SearchFrom": priceFrom,
-				"SearchUp":   priceUp,
-			})
-		} else {
-			render.Render(c, "index.html", gin.H{
-				"payload":    cards,
-				"SearchFrom": priceFrom,
-				"SearchUp":   priceUp,
-			})
-		}
-	} else {
-		cards := models.GetAllCards()
-		render.Render(c, "index.html", gin.H{
-			"payload":    cards,
-			"SearchFrom": "",
-			"SearchUp":   "",
-		})
+	cards, err := models.FindCallCardsByPrice(priceFrom, priceUp)
+	var reqError string
+	if err != nil {
+		reqError = err.Error()
 	}
+
+	render.Render(c, "index.html", gin.H{
+		"NoCards":      reqError,
+		"payload":      cards,
+		"SearchFrom":   priceFrom,
+		"SearchUp":     priceUp,
+		"ReqCallCount": len(models.GetMyCallCards(1).Cards),
+	})
 }
 
 func getCallCard(c *gin.Context) {
