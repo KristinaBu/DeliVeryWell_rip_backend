@@ -6,8 +6,6 @@ import (
 	"log"
 )
 
-// TODO: - корзина - указать количество
-
 func StartServer() {
 	log.Println("Server start up")
 
