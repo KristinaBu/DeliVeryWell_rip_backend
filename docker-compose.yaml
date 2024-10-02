@@ -31,6 +31,15 @@ x-minio-common: &minio-common
 # используя обратный прокси-сервер nginx, балансировку нагрузки, вы можете получить доступ
 # через порт 9000.
 services:
+  db:
+    image: postgres:12
+    ports:
+      - "${DB_PORT}:5432"
+    environment:
+        POSTGRES_USER: ${DB_USER}
+        POSTGRES_DB: ${DB_NAME}
+        POSTGRES_PASSWORD: ${DB_PASS}
+
   minio1:
     <<: *minio-common
     hostname: minio1 # указываем что адрес внутри подсети docker будет http://minio1:9000/ и на порту 9001 для админки соотвественно

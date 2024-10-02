@@ -17,11 +17,9 @@
 
 <div class="main-container">
 
-
-
     <form class="search-container" action="/" method="get">
-        <input class="search" type="text" name="price_from" placeholder="Поиск" value="{{ .SearchFrom }}">
-        <input class="search" type="text" name="price_up" placeholder="Поиск" value="{{ .SearchUp }}">
+        <input class="search" type="text" name="price_from" placeholder="Цена от" value="{{ .SearchFrom }}">
+        <input class="search" type="text" name="price_up" placeholder="Цена до" value="{{ .SearchUp }}">
         <input  class="search-button" type="submit" value="Найти">
     </form>
 
@@ -33,8 +31,8 @@
 
 
         {{range .payload }}
-        <div class="card" href="/card/{{.ID}}">
-            <img src="http://127.0.0.1:9000/images/{{.ID}}.png " class="image">
+        <div class="card" href="/aboutcall/{{.ID}}">
+            <img src="http://127.0.0.1:9000/images/1.png" class="image">
             <div class="info">
                 <div class="title">
                     {{.Title}}
