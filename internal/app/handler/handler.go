@@ -20,8 +20,9 @@ func NewHandler(l *logrus.Logger, r *repository.Repository) *Handler {
 
 func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.GET("/", h.DeliveryItemList)
-	router.GET("/aboutcall/:card_id", h.DeliveryItemByID)
-	router.POST("/delete/:card_id", h.DeleteDeliveryItem)
+	router.GET("/aboutcall/:id", h.DeliveryItemByID)
+	router.POST("/delete/:id", h.DeleteDeliveryItem)
+	//router.GET("/mycalls/:callrequest_id", h.GetMyCallCards)
 }
 
 func (h *Handler) RegisterStatic(router *gin.Engine) {
@@ -29,7 +30,6 @@ func (h *Handler) RegisterStatic(router *gin.Engine) {
 	router.Static("/static", "./static")
 	router.Static("/css", "./static")
 	router.Static("/img", "./static")
-
 }
 
 func (h *Handler) errorHandler(ctx *gin.Context, errorStatusCode int, err error) {

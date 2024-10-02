@@ -91,6 +91,8 @@ body {
     width: auto;
 }
 
+
+
 .info-button:hover {
     background-color: var(--info-but-hover-color);
 }

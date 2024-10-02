@@ -1,5 +1,6 @@
 package transport
 
+/*
 import (
 	"BMSTU_IU5_53B_rip/internal/models"
 	"BMSTU_IU5_53B_rip/internal/render"
@@ -63,3 +64,4 @@ func getMyCallCards(c *gin.Context) {
 		})
 	}
 }
+*/

@@ -1,5 +1,6 @@
 package transport
 
+/*
 import "github.com/gin-gonic/gin"
 
 func InitializeRouters(router *gin.Engine) {
@@ -9,3 +10,4 @@ func InitializeRouters(router *gin.Engine) {
 	router.GET("/mycalls/:callrequest_id", getMyCallCards)
 
 }
+*/
