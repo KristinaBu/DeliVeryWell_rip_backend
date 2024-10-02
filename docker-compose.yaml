@@ -32,13 +32,13 @@ x-minio-common: &minio-common
 # через порт 9000.
 services:
   db:
-    image: postgres:12
+    image: postgres:14
     ports:
       - "${DB_PORT}:5432"
     environment:
-        POSTGRES_USER: ${DB_USER}
-        POSTGRES_DB: ${DB_NAME}
-        POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_PASSWORD: ${DB_PASS}
 
   minio1:
     <<: *minio-common
