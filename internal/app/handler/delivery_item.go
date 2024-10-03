@@ -15,9 +15,9 @@ func (h *Handler) DeliveryItemList(ctx *gin.Context) {
 	priceFrom := ctx.Query("price_from")
 	priceTo := ctx.Query("price_to")
 
-	user_id := 1
-	reqCount, _ := h.Repository.GetDeliveryReqLength(ds.DraftStatus, uint(user_id))
-
+	userId := 1
+	reqCount, _ := h.Repository.GetDeliveryReqLength(ds.DraftStatus, uint(userId))
+	reqID, _ := h.Repository.HasRequestByUserID(uint(userId))
 	if priceFrom == "" && priceTo == "" {
 		cards, err := h.Repository.DeliveryItemList()
 		if err != nil {
@@ -32,6 +32,7 @@ func (h *Handler) DeliveryItemList(ctx *gin.Context) {
 			"SearchFrom":   priceFrom,
 			"SearchUp":     priceTo,
 			"ReqCallCount": reqCount,
+			"ReqID":        reqID,
 		})
 		return
 	}
@@ -48,6 +49,7 @@ func (h *Handler) DeliveryItemList(ctx *gin.Context) {
 		"SearchFrom":   priceFrom,
 		"SearchUp":     priceTo,
 		"ReqCallCount": reqCount,
+		"ReqID":        reqID,
 	})
 
 }

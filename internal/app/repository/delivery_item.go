@@ -58,6 +58,15 @@ func (r *Repository) GetDeliveryItemByID(id string) (*ds.DeliveryItem, error) {
 	return &DelItem, nil
 }
 
+func (r *Repository) HasRequestByUserID(userID uint) (uint, error) {
+	var req ds.DeliveryRequest
+	err := r.db.Where("user_id = ? AND status = ?", userID, ds.DraftStatus).First(&req).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return 0, err
+	}
+	return req.ID, nil
+}
+
 func (r *Repository) CreateOrUpdateDeliveryReq(itemID, userID uint) (*ds.DeliveryRequest, error) {
 	var order ds.DeliveryRequest
 	err := r.db.Where("user_id = ? AND status = ?", userID, ds.DraftStatus).First(&order).Error
