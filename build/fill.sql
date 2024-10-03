@@ -23,7 +23,7 @@ INSERT INTO item_requests (item_id, request_id, count) VALUES
 (3, 2, 1), -- Цветы
 (4, 2, 1); -- Суши
 
--- Создание функции для проверки черновиков
+-- Создание функции для проверки черновиковitem_r
 CREATE FUNCTION check_draft_request() RETURNS trigger AS $$
 BEGIN
     IF (SELECT COUNT(*) FROM delivery_requests WHERE user_id = NEW.user_id AND status = 'черновик') > 0 THEN
