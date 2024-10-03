@@ -10,16 +10,7 @@
     <link rel="stylesheet" href="../static/css/variables.css">
     <style>
 
-        .del-button {
-            padding: 10px 10px;
-            border: 2px solid var(--del-but-color);
-            border-radius: 14px;
-            font-size: 20px;
-            background-color: var(--card-color);
-            color: var(--del-but-color);
-            display: inline-block;
-            width: auto;
-        }
+
     </style>
 </head>
 <body>
@@ -56,24 +47,18 @@
                     <button class="info-button" onclick="window.location.href = '/aboutcall/{{.ID}}';">
                         Подробнее об услуге
                     </button>
-                    <form action="/delete/{{.ID}}" method="post">
-                        <button class="del-button">
-                            Удалить
+
+                    <form action="/add/{{.ID}}" method="post">
+                        <button class="info-button" >
+                            Добавить
                         </button>
                     </form>
-
-                </div>
-                <div>
-                    <button class="info-button" onclick="window.location.href = '/aboutcall/{{.ID}}';">
-                        Добавить
-                    </button>
                 </div>
             </div>
 
         </div>
         {{end}}
     </div>
-
     {{ template "basket.html" . }}
 </div>
 

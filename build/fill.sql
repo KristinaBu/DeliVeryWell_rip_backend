@@ -10,7 +10,7 @@ INSERT INTO delivery_items (image, title, price, description) VALUES
 ('http://127.0.0.1:9000/images/4.png', 'Цветы', 799, 'Доставка цветов, букетов, упаковочных материалов в Москве'),
 ('http://127.0.0.1:9000/images/5.png', 'Суши', 200, 'Доставка суши в Москве за 200 рублей. При покупке товара на сумму более 500 рублей - доставка 100 рублей (Суши Мастер)');
 
-INSERT INTO delivery_requests (status, address, delivery_date, delivery_type, user_id, moderator_id) VALUES
+INSERT INTO delivery_requests (status, address, date_created, delivery_type, user_id, moderator_id) VALUES
 ('черновик', 'Москва, ул. Бауманская, дом 4, кв. 3', NOW(), 'Курьер', 1, NULL),
 ('черновик', 'Москва, ул. Бауманская, дом 4, кв. 3', NOW(), 'Грузовик', 1, NULL);
 

@@ -87,6 +87,16 @@
             justify-content: center;
             box-sizing: border-box;
         }
+        .del-button {
+            padding: 10px 10px;
+            border: 2px solid var(--del-but-color);
+            border-radius: 14px;
+            font-size: 20px;
+            background-color: var(--card-color);
+            color: var(--del-but-color);
+            display: inline-block;
+            width: auto;
+        }
 
 
     </style>
@@ -96,6 +106,13 @@
 {{ template "header.html" .}}
 
 <div class="main-container">
+    <div>
+        <form action="/delete/{{.ReqID}}" method="post">
+            <button class="del-button">
+                Удалить
+            </button>
+        </form>
+    </div>
 
 
     <div class="request-info-container">
@@ -110,20 +127,20 @@
 
         <div class="delivery-container">
 
-                <div class="delivery-text"> Ваш курьер:</div>
+                <div class="delivery-text"> Способ доставки:</div>
                 <div class="request-info">
-                    {{ .DeliveryName }}
+                    {{ .DeliveryType }}
                 </div>
 
         </div>
     </div>
 
-
+    {{range .payload }}
     <div class="my-card-group">
-        {{range .payload }}
+
         <div class="my-card-container">
             <div class="card">
-                <img src="http://127.0.0.1:9000/images/{{.ID}}.png "  class="image">
+                <img src={{.Image}}  class="image">
                 <div class="info">
                     <div class="title">
                         {{.Title}}
@@ -138,16 +155,17 @@
             </div>
             <div class="add-container">
                 <button class="add-button">+</button>
-                <div class="add-text">
-                    {{ .Count }}
-                </div>
+
                 <button class="add-button">-</button>
             </div>
         </div>
-        {{ end }}
+
     </div>
+    {{end}}
     {{.NoCards}}
 </div>
+
+
 
 </body>
 </html>

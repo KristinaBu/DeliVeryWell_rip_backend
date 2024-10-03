@@ -21,8 +21,9 @@ func NewHandler(l *logrus.Logger, r *repository.Repository) *Handler {
 func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.GET("/", h.DeliveryItemList)
 	router.GET("/aboutcall/:id", h.DeliveryItemByID)
-	router.POST("/delete/:id", h.DeleteDeliveryItem)
-	//router.GET("/mycalls/:callrequest_id", h.GetMyCallCards)
+	router.POST("/delete/:id", h.DeleteDeliveryReq)
+	router.POST("/add/:id", h.AddDeliveryItem)
+	router.GET("/mycalls/:callrequest_id", h.GetMyCallCards)
 }
 
 func (h *Handler) RegisterStatic(router *gin.Engine) {
