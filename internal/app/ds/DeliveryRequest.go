@@ -24,3 +24,9 @@ const (
 	CompletedStatus = "завершен"
 	RejectedStatus  = "отклонен"
 )
+
+const (
+	HomeDelivery    = "На дом"
+	CourierDelivery = "Курьер"
+	CarDelivery     = "Грузовик"
+)

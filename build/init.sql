@@ -30,6 +30,7 @@ CREATE TABLE delivery_requests (
 
 -- Создание таблицы item_requests
 CREATE TABLE item_requests (
+    id PRIMARY KEY,
     item_id BIGINT NOT NULL,
     request_id BIGINT NOT NULL,
     count BIGINT NOT NULL DEFAULT 1,

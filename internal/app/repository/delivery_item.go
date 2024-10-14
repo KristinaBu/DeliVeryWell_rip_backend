@@ -11,12 +11,14 @@ import (
 
 // услуги
 
+// DeliveryItemList возвращает список услуг
 func (r *Repository) DeliveryItemList() (*[]ds.DeliveryItem, error) {
 	var deliveryItems []ds.DeliveryItem
 	r.db.Where("is_delete = ?", false).Find(&deliveryItems)
 	return &deliveryItems, nil
 }
 
+// SearchDeliveryItem возвращает список услуг, отфильтрованный по цене
 func (r *Repository) SearchDeliveryItem(priceFrom, priceTo string) (*[]ds.DeliveryItem, error) {
 	intPriceFrom, _ := strconv.Atoi(priceFrom)
 	intPriceTo, _ := strconv.Atoi(priceTo)
@@ -34,6 +36,7 @@ func (r *Repository) SearchDeliveryItem(priceFrom, priceTo string) (*[]ds.Delive
 	return &filteredItems, nil
 }
 
+// DeleteDeliveryItem  удаляет услугу
 func (r *Repository) DeleteDeliveryItem(id string) error {
 	query := "UPDATE delivery_items SET is_delete = true WHERE id = $1"
 	result := r.db.Exec(query, id)
@@ -41,6 +44,7 @@ func (r *Repository) DeleteDeliveryItem(id string) error {
 	return nil
 }
 
+// DeleteDeliveryReq  удаляет заявку
 func (r *Repository) DeleteDeliveryReq(id string) error {
 	query := "UPDATE delivery_requests SET status = 'удален' WHERE id = $1"
 	result := r.db.Exec(query, id)
@@ -50,6 +54,7 @@ func (r *Repository) DeleteDeliveryReq(id string) error {
 	return nil
 }
 
+// GetDeliveryItemByID возвращает услугу по ID
 func (r *Repository) GetDeliveryItemByID(id string) (*ds.DeliveryItem, error) {
 	var DelItem ds.DeliveryItem
 	intID, _ := strconv.Atoi(id)
@@ -58,6 +63,7 @@ func (r *Repository) GetDeliveryItemByID(id string) (*ds.DeliveryItem, error) {
 	return &DelItem, nil
 }
 
+// HasRequestByUserID проверяет наличие заявки пользователя
 func (r *Repository) HasRequestByUserID(userID uint) (uint, error) {
 	var req ds.DeliveryRequest
 	err := r.db.Where("user_id = ? AND status = ?", userID, ds.DraftStatus).First(&req).Error
@@ -67,6 +73,7 @@ func (r *Repository) HasRequestByUserID(userID uint) (uint, error) {
 	return req.ID, nil
 }
 
+// CreateOrUpdateDeliveryReq создает или обновляет заявку на доставку
 func (r *Repository) CreateOrUpdateDeliveryReq(itemID, userID uint) (*ds.DeliveryRequest, error) {
 	var order ds.DeliveryRequest
 	err := r.db.Where("user_id = ? AND status = ?", userID, ds.DraftStatus).First(&order).Error
@@ -99,11 +106,12 @@ func (r *Repository) CreateOrUpdateDeliveryReq(itemID, userID uint) (*ds.Deliver
 	return &order, nil
 }
 
-func (r *Repository) GetDeliveryReqLength(status string, user_id uint) (int64, error) {
+// GetDeliveryReqCount возвращает количество элементов в заявке
+func (r *Repository) GetDeliveryReqCount(status string, userId uint) (int64, error) {
 	var count int64
 	var req ds.DeliveryRequest
 
-	if err := r.db.Where("user_id = ? AND status = ?", user_id, status).First(&req).Error; err != nil {
+	if err := r.db.Where("user_id = ? AND status = ?", userId, status).First(&req).Error; err != nil {
 		return 0, err
 	}
 
@@ -113,9 +121,14 @@ func (r *Repository) GetDeliveryReqLength(status string, user_id uint) (int64, e
 	if err != nil {
 		return 0, err
 	}
+	fmt.Println("Count ", count,
+		"reqID ", reqID,
+		"status ", status)
+
 	return count, nil
 }
 
+// GetDeliveryItemsByUserAndStatus возвращает элементы заявки пользователя по статусу
 func (r *Repository) GetDeliveryItemsByUserAndStatus(status string, userID uint) ([]*ds.DeliveryItem, error) {
 	var items []*ds.DeliveryItem
 
@@ -136,6 +149,7 @@ func (r *Repository) GetDeliveryItemsByUserAndStatus(status string, userID uint)
 	return items, nil
 }
 
+// GetCallRequestById возвращает заявку по ID
 func (r *Repository) GetCallRequestById(id uint) (*ds.DeliveryRequest, error) {
 	var callRequest ds.DeliveryRequest
 	err := r.db.Where("id = ?", id).First(&callRequest).Error
@@ -150,13 +164,14 @@ func (r *Repository) GetCallRequestById(id uint) (*ds.DeliveryRequest, error) {
 	return &callRequest, nil
 }
 
+// CreateDraftRequestAndGetID создает черновик заявки и возвращает ID
 func (r *Repository) CreateDraftRequestAndGetID(userID uint) (uint, error) {
 	draftRequest := ds.DeliveryRequest{
 		Status:       ds.DraftStatus,
 		UserID:       userID,
 		Address:      "",
 		DeliveryDate: time.Now(),
-		DeliveryType: "Курьер",
+		DeliveryType: ds.CourierDelivery,
 	}
 
 	err := r.db.Create(&draftRequest).Error
@@ -169,6 +184,7 @@ func (r *Repository) CreateDraftRequestAndGetID(userID uint) (uint, error) {
 	return draftRequest.ID, nil
 }
 
+// LinkItemToDraftRequest связывает элемент с черновиком заявки
 func (r *Repository) LinkItemToDraftRequest(userID uint, itemId uint) error {
 	// поик существующей заявки пользователя со статусом 'черновик'
 	var draftRequest ds.DeliveryRequest
@@ -179,7 +195,7 @@ func (r *Repository) LinkItemToDraftRequest(userID uint, itemId uint) error {
 		draftRequest.Status = ds.DraftStatus
 		draftRequest.Address = ""
 		draftRequest.DeliveryDate = time.Now()
-		draftRequest.DeliveryType = "Курьер"
+		draftRequest.DeliveryType = ds.CourierDelivery
 		err = r.db.Create(&draftRequest).Error
 		if err != nil {
 			return fmt.Errorf("error creating new draft request: %w", err)

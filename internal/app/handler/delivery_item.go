@@ -11,12 +11,13 @@ import (
 // вызываются функции из репы, которые идут в бд
 // то есть как бы прослойка между эндпоинтами и данными, которые идут их бд
 
+// DeliveryItemList рисует главную страницу
 func (h *Handler) DeliveryItemList(ctx *gin.Context) {
 	priceFrom := ctx.Query("price_from")
 	priceTo := ctx.Query("price_to")
 
 	userId := 1
-	reqCount, _ := h.Repository.GetDeliveryReqLength(ds.DraftStatus, uint(userId))
+	reqCount, _ := h.Repository.GetDeliveryReqCount(ds.DraftStatus, uint(userId))
 	reqID, _ := h.Repository.HasRequestByUserID(uint(userId))
 	if priceFrom == "" && priceTo == "" {
 		cards, err := h.Repository.DeliveryItemList()
@@ -54,6 +55,7 @@ func (h *Handler) DeliveryItemList(ctx *gin.Context) {
 
 }
 
+// DeliveryItemByID рисует страницу с карточкой
 func (h *Handler) DeliveryItemByID(ctx *gin.Context) {
 	id := ctx.Param("id")
 	card, err := h.Repository.GetDeliveryItemByID(id)
@@ -69,6 +71,7 @@ func (h *Handler) DeliveryItemByID(ctx *gin.Context) {
 	})
 }
 
+// DeleteDeliveryItem удаляет карточку и редиректит на главную
 func (h *Handler) DeleteDeliveryItem(ctx *gin.Context) {
 	id := ctx.Param("id")
 	err := h.Repository.DeleteDeliveryItem(id)
@@ -77,6 +80,7 @@ func (h *Handler) DeleteDeliveryItem(ctx *gin.Context) {
 	ctx.Redirect(http.StatusFound, "/")
 }
 
+// DeleteDeliveryReq удаляет заявку и редиректит на главную
 func (h *Handler) DeleteDeliveryReq(ctx *gin.Context) {
 	id := ctx.Param("id")
 	err := h.Repository.DeleteDeliveryReq(id)
@@ -87,6 +91,7 @@ func (h *Handler) DeleteDeliveryReq(ctx *gin.Context) {
 
 }
 
+// AddDeliveryItem добавляет карточку в заявку
 func (h *Handler) AddDeliveryItem(ctx *gin.Context) {
 	itemID := ctx.Param("id")
 	intItemID, _ := strconv.Atoi(itemID)
@@ -97,9 +102,9 @@ func (h *Handler) AddDeliveryItem(ctx *gin.Context) {
 	}
 	fmt.Println("1ID del req   ", itemID, " stetus ")
 	ctx.Redirect(http.StatusFound, "/")
-
 }
 
+// GetMyCallCards рисует страницу с заявкой
 func (h *Handler) GetMyCallCards(ctx *gin.Context) {
 	if callRequestId, err := strconv.Atoi(ctx.Param("callrequest_id")); err == nil {
 		print("id req = ", callRequestId)
@@ -109,24 +114,33 @@ func (h *Handler) GetMyCallCards(ctx *gin.Context) {
 
 		// Получаем заявку по ID
 		callRequest, err := h.Repository.GetCallRequestById(uint(callRequestId))
-		if err != nil {
-			h.errorHandler(ctx, http.StatusNotFound, err)
+		if err != nil || callRequest.Status == ds.DeletedStatus {
+			// Если заявка не найдена или удалена, перенаправляем на главную страницу
+			ctx.Redirect(http.StatusFound, "/")
 			return
 		}
 
 		// Получаем карточки доставки для этой заявки
 		cards, err := h.Repository.GetDeliveryItemsByUserAndStatus(ds.DraftStatus, uint(user_id))
 		if err != nil {
-			h.errorHandler(ctx, http.StatusInternalServerError, err)
+			// Если произошла ошибка, перенаправляем на главную страницу
+			ctx.Redirect(http.StatusFound, "/")
 			return
 		}
+
+		timestamp := callRequest.DeliveryDate
+		formattedTime := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d", timestamp.Year(), timestamp.Month(), timestamp.Day(), timestamp.Hour(), timestamp.Minute(), timestamp.Second())
+
+		// получаем колическво карточек из м-м таблицы item_request
+		count, err := h.Repository.GetDeliveryReqCount(ds.DraftStatus, uint(user_id))
+
 		ctx.HTML(http.StatusOK, "mycards.html", gin.H{
 			"payload":      cards,
-			"Data":         callRequest.DeliveryDate,
+			"Data":         formattedTime,
 			"Address":      callRequest.Address,
 			"DeliveryType": callRequest.DeliveryType,
 			"ReqID":        callRequestId,
-			"Count":        1,
+			"Count":        count,
 		})
 	} else {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
