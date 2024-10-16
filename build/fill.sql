@@ -27,3 +27,18 @@ CREATE TRIGGER draft_request_trigger
     FOR EACH ROW
     WHEN (NEW.status = 'черновик')
 EXECUTE FUNCTION check_draft_request();
+
+ALTER TABLE delivery_items
+    ALTER COLUMN image SET DEFAULT '';
+
+ALTER TABLE delivery_items
+    ALTER COLUMN image TYPE varchar(255),
+    ALTER COLUMN image SET DEFAULT '',
+    ALTER COLUMN image SET NOT NULL,
+    ALTER COLUMN title TYPE varchar(255),
+    ALTER COLUMN title SET NOT NULL,
+    ALTER COLUMN price TYPE integer,
+    ALTER COLUMN price SET NOT NULL,
+    ALTER COLUMN description TYPE text,
+    ALTER COLUMN description SET NOT NULL,
+    ALTER COLUMN is_delete SET DEFAULT false;

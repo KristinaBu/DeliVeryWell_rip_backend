@@ -5,44 +5,8 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"strconv"
 	"time"
 )
-
-// услуги
-
-// DeliveryItemList возвращает список услуг
-func (r *Repository) DeliveryItemList() (*[]ds.DeliveryItem, error) {
-	var deliveryItems []ds.DeliveryItem
-	r.db.Where("is_delete = ?", false).Find(&deliveryItems)
-	return &deliveryItems, nil
-}
-
-// SearchDeliveryItem возвращает список услуг, отфильтрованный по цене
-func (r *Repository) SearchDeliveryItem(priceFrom, priceTo string) (*[]ds.DeliveryItem, error) {
-	intPriceFrom, _ := strconv.Atoi(priceFrom)
-	intPriceTo, _ := strconv.Atoi(priceTo)
-
-	var deliveryItems []ds.DeliveryItem
-	// сохраняем данные из бд в массив
-	r.db.Find(&deliveryItems)
-
-	var filteredItems []ds.DeliveryItem
-	for _, item := range deliveryItems {
-		if item.Price <= intPriceTo && item.Price >= intPriceFrom {
-			filteredItems = append(filteredItems, item)
-		}
-	}
-	return &filteredItems, nil
-}
-
-// DeleteDeliveryItem  удаляет услугу
-func (r *Repository) DeleteDeliveryItem(id string) error {
-	query := "UPDATE delivery_items SET is_delete = true WHERE id = $1"
-	result := r.db.Exec(query, id)
-	r.logger.Info("Rows affected:", result.RowsAffected)
-	return nil
-}
 
 // DeleteDeliveryReq  удаляет заявку
 func (r *Repository) DeleteDeliveryReq(id string) error {
@@ -52,25 +16,6 @@ func (r *Repository) DeleteDeliveryReq(id string) error {
 	r.logger.Info("Rows affected:", result.RowsAffected)
 
 	return nil
-}
-
-// GetDeliveryItemByID возвращает услугу по ID
-func (r *Repository) GetDeliveryItemByID(id string) (*ds.DeliveryItem, error) {
-	var DelItem ds.DeliveryItem
-	intID, _ := strconv.Atoi(id)
-	r.db.Find(&DelItem, intID)
-	print(DelItem.ID, "ID")
-	return &DelItem, nil
-}
-
-// HasRequestByUserID проверяет наличие заявки пользователя
-func (r *Repository) HasRequestByUserID(userID uint) (uint, error) {
-	var req ds.DeliveryRequest
-	err := r.db.Where("user_id = ? AND status = ?", userID, ds.DraftStatus).First(&req).Error
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return 0, err
-	}
-	return req.ID, nil
 }
 
 // CreateOrUpdateDeliveryReq создает или обновляет заявку на доставку
@@ -217,4 +162,25 @@ func (r *Repository) LinkItemToDraftRequest(userID uint, itemId uint) error {
 	}
 
 	return nil
+}
+
+// HasRequestByUserID проверяет наличие заявки пользователя
+func (r *Repository) HasRequestByUserID(userID uint) (uint, error) {
+	var req ds.DeliveryRequest
+	err := r.db.Where("user_id = ? AND status = ?", userID, ds.DraftStatus).First(&req).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return 0, err
+	}
+	return req.ID, nil
+}
+
+// GetCalls - возвращает звонки с учетом фильтров
+func (r *Repository) GetCalls(dateFrom, dateTo time.Time, status string) ([]*ds.DeliveryRequest, error) {
+	var calls []*ds.DeliveryRequest
+	query := "SELECT * FROM delivery_requests WHERE date_formed BETWEEN ? AND ? AND status = ?"
+	result := r.db.Raw(query, dateFrom, dateTo, status).Scan(&calls)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return calls, nil
 }

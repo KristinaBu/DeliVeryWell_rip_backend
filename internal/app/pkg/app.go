@@ -29,6 +29,9 @@ func (a *Application) StartServer() {
 	a.Handler.RegisterHandler(a.Router)
 	a.Handler.RegisterStatic(a.Router)
 	serverAddress := fmt.Sprintf("%s:%d", a.Config.ServiceHost, a.Config.ServicePort)
+
+	// TODO: новые роуты
+
 	if err := a.Router.Run(serverAddress); err != nil {
 		a.Logger.Fatalln(err)
 	}

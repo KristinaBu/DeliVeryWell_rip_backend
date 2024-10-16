@@ -34,7 +34,7 @@
 
 
         {{range .payload }}
-        <div class="card" href="/aboutcall/{{.ID}}">
+        <div class="card" href="{{$.DeliveryDomain}}/{{.ID}}">
             <img src={{.Image}} class="image">
             <div class="info">
                 <div class="title">
@@ -44,7 +44,7 @@
                     {{.Price}} руб.
                 </div>
                 <div>
-                    <button class="info-button" onclick="window.location.href = '/aboutcall/{{.ID}}';">
+                    <button class="info-button" onclick="window.location.href = '{{$.DeliveryDomain}}/{{.ID}}';">
                         Подробнее об услуге
                     </button>
 

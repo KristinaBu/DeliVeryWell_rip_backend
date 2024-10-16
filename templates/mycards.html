@@ -148,14 +148,14 @@
                     <div class="price">
                         {{.Price}} руб.
                     </div>
-                    <button class="info-button" onclick="window.location.href = '/aboutcall/{{.ID}}';">
+                    <button class="info-button" onclick="window.location.href = '{{$.DeliveryDomain}}/{{.ID}}';">
                         Подробнее об услуге
                     </button>
                 </div>
             </div>
             <div class="add-container">
                 <button class="add-button">+</button>
-                <!-- {{ .Count }} -->
+
                 <button class="add-button">-</button>
             </div>
         </div>
