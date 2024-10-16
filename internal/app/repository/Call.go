@@ -9,7 +9,7 @@ import (
 )
 
 // DeleteDeliveryReq  удаляет заявку
-func (r *Repository) DeleteDeliveryReq(id string) error {
+func (r *Repository) DeleteCall(id string) error {
 	query := "UPDATE delivery_requests SET status = 'удален' WHERE id = $1"
 	result := r.db.Exec(query, id)
 	fmt.Println("ID del req   ", id, " stetus ")
@@ -109,13 +109,31 @@ func (r *Repository) GetCallRequestById(id uint) (*ds.DeliveryRequest, error) {
 	return &callRequest, nil
 }
 
+// GetDeliveryItemsByCallRequestID возвращает элементы заявки по ID заявки
+func (r *Repository) GetDeliveryItemsByCallRequestID(callRequestID uint) ([]*ds.DeliveryItem, error) {
+	var items []*ds.DeliveryItem
+
+	// Используем GORM для выполнения запроса
+	err := r.db.Model(&ds.DeliveryItem{}).
+		Select("delivery_items.*").
+		Joins("INNER JOIN item_requests ON delivery_items.id = item_requests.item_id").
+		Where("item_requests.request_id = ?", callRequestID).
+		Find(&items).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
 // CreateDraftRequestAndGetID создает черновик заявки и возвращает ID
 func (r *Repository) CreateDraftRequestAndGetID(userID uint) (uint, error) {
 	draftRequest := ds.DeliveryRequest{
 		Status:       ds.DraftStatus,
 		UserID:       userID,
 		Address:      "",
-		DeliveryDate: time.Now(),
+		DateCreated:  time.Now(),
 		DeliveryType: ds.CourierDelivery,
 	}
 
@@ -183,4 +201,115 @@ func (r *Repository) GetCalls(dateFrom, dateTo time.Time, status string) ([]*ds.
 		return nil, result.Error
 	}
 	return calls, nil
+}
+
+// UpdateCall обновляет звонок
+func (r *Repository) UpdateCall(call *ds.DeliveryRequest) (*ds.DeliveryRequest, error) {
+	result := r.db.Model(&ds.DeliveryRequest{}).Where("id = ?", call.ID).Updates(map[string]interface{}{
+		"Address":      call.Address,
+		"DeliveryDate": call.DeliveryDate,
+		"DeliveryType": call.DeliveryType,
+	})
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	// Загрузка обновленной записи из базы данных
+	var updatedCall ds.DeliveryRequest
+	if err := r.db.First(&updatedCall, call.ID).Error; err != nil {
+		return nil, err
+	}
+
+	return &updatedCall, nil
+}
+
+// FormCall - формирование звонка
+// FormCall - формирование звонка
+func (r *Repository) FormCall(callID uint, userID uint) (*ds.DeliveryRequest, error) {
+	// Получение звонка из базы данных
+	var existingCall ds.DeliveryRequest
+	if err := r.db.Where("id = ? AND user_id = ?", callID, userID).First(&existingCall).Error; err != nil {
+		return nil, err
+	}
+	fmt.Println("call", existingCall.ID, existingCall.UserID, existingCall.Status)
+
+	b := !(existingCall.UserID == userID) || !(r.IsAdmin(userID))
+	a := !(existingCall.UserID == userID)
+	c := r.IsAdmin(userID)
+	fmt.Println(b, a, c, existingCall.UserID, userID)
+	// Проверка, что пользователь является владельцем заявки или модератором
+	if !(existingCall.UserID == userID) {
+		if !(r.IsAdmin(userID)) {
+			return nil, fmt.Errorf("user with id %d is not the owner of the call request or a moderator", userID)
+		}
+	}
+
+	// Проверка, что статус звонка является "черновиком"
+	if existingCall.Status != ds.DraftStatus {
+		return nil, fmt.Errorf("call status is not draft")
+	}
+
+	result := r.db.Model(&existingCall).Updates(map[string]interface{}{
+		"Status":     ds.FormedStatus,
+		"DateFormed": time.Now(),
+	})
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	// Загрузка обновленной записи из базы данных
+	var updatedCall ds.DeliveryRequest
+	if err := r.db.First(&updatedCall, callID).Error; err != nil {
+		return nil, err
+	}
+
+	return &updatedCall, nil
+}
+
+// CompleteOrRejectCall - завершает или отклоняет заявку
+func (r *Repository) CompleteOrRejectCall(call *ds.DeliveryRequest, isComplete bool) (*ds.DeliveryRequest, int, error) {
+	// Проверка, является ли пользователь администратором
+	isAdmin := r.IsAdmin(call.ModeratorID)
+
+	if !isAdmin {
+		return nil, 0, fmt.Errorf("user with id %d is not an admin", call.ModeratorID)
+	}
+
+	// Получение звонка из базы данных
+	var existingCall ds.DeliveryRequest
+	if err := r.db.First(&existingCall, call.ID).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Проверка, что статус звонка является "сформированным"
+	if existingCall.Status != ds.FormedStatus {
+		return nil, 0, fmt.Errorf("call status is not formed")
+	}
+
+	// Обновление статуса звонка
+	newStatus := ds.RejectedStatus
+	if isComplete {
+		newStatus = ds.CompletedStatus
+	}
+
+	result := r.db.Model(&existingCall).Updates(map[string]interface{}{
+		"ModeratorID":  call.ModeratorID,
+		"Status":       newStatus,
+		"DateAccepted": time.Now(),
+	})
+	if result.Error != nil {
+		return nil, 0, result.Error
+	}
+
+	// Вычисление итогового количества единиц доставки
+	var totalItemCount int
+	r.db.Model(&ds.Item_request{}).Where("request_id = ?", call.ID).Select("sum(count)").Row().Scan(&totalItemCount)
+
+	// Загрузка обновленной записи из базы данных
+	var updatedCall ds.DeliveryRequest
+	if err := r.db.First(&updatedCall, call.ID).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return &updatedCall, totalItemCount, nil
 }

@@ -47,59 +47,149 @@ func (h *Handler) GetCalls(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, models.GetCallsResponse{Calls: calls})
 }
 
-// DeleteDeliveryReq удаляет заявку и редиректит на главную
-func (h *Handler) DeleteDeliveryReq(ctx *gin.Context) {
+// DeleteCall - устанавливает статус "удалено" для звонка
+func (h *Handler) DeleteCall(ctx *gin.Context) {
 	id := ctx.Param("id")
-	err := h.Repository.DeleteDeliveryReq(id)
-	if err != nil {
-	}
-	ctx.Redirect(http.StatusFound, "/")
 
+	err := h.Repository.DeleteCall(id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
 }
 
 // GetMyCallCards рисует страницу с заявкой
-func (h *Handler) GetMyCallCards1(ctx *gin.Context) {
-	if callRequestId, err := strconv.Atoi(ctx.Param("callrequest_id")); err == nil {
-		print("id req = ", callRequestId)
-
+func (h *Handler) GetMyCallCards(ctx *gin.Context) {
+	if callRequestId, err := strconv.Atoi(ctx.Param("id")); err == nil {
 		// Предполагаем, что пользователь идентификатор равен 1
-		user_id := 1
+		userId := 1
 
 		// Получаем заявку по ID
 		callRequest, err := h.Repository.GetCallRequestById(uint(callRequestId))
 		if err != nil || callRequest.Status == ds.DeletedStatus {
-			// Если заявка не найдена или удалена, перенаправляем на главную страницу
-			ctx.Redirect(http.StatusFound, "/")
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Call request not found or deleted"})
 			return
 		}
 
 		// Получаем карточки доставки для этой заявки
-		cards, err := h.Repository.GetDeliveryItemsByUserAndStatus(ds.DraftStatus, uint(user_id))
+		cards, err := h.Repository.GetDeliveryItemsByUserAndStatus(ds.DraftStatus, uint(userId))
 		if err != nil {
-			// Если произошла ошибка, перенаправляем на главную страницу
-			ctx.Redirect(http.StatusFound, "/")
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		timestamp := callRequest.DeliveryDate
-		formattedTime := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d", timestamp.Year(), timestamp.Month(), timestamp.Day(), timestamp.Hour(), timestamp.Minute(), timestamp.Second())
-
 		// получаем колическво карточек из м-м таблицы item_request
-		count, err := h.Repository.GetDeliveryReqCount(ds.DraftStatus, uint(user_id))
+		count, err := h.Repository.GetDeliveryReqCount(ds.DraftStatus, uint(userId))
 
-		ctx.HTML(http.StatusOK, "mycards.html", gin.H{
-			"payload":      cards,
-			"Data":         formattedTime,
-			"Address":      callRequest.Address,
-			"DeliveryType": callRequest.DeliveryType,
-			"ReqID":        callRequestId,
-			"Count":        count,
-			"CallDomain":   CallDomain,
+		ctx.JSON(http.StatusOK, models.GetMyCallCardsResponse{
+			CallRequest:   callRequest,
+			DeliveryItems: cards,
+			Count:         int(count),
 		})
 	} else {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 }
 
-// GetMyCallCards рисует страницу с заявкой
-func (h *Handler) GetMyCallCards(ctx *gin.Context) {}
+// GetCall возвращает заявку на звонок
+func (h *Handler) GetCall(ctx *gin.Context) {
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	call, err := h.Repository.GetCallRequestById(uint(id))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	deliveries, err := h.Repository.GetDeliveryItemsByCallRequestID(uint(id))
+	ctx.JSON(http.StatusOK, models.GetMyCallCardsResponse{
+		CallRequest:   call,
+		DeliveryItems: deliveries,
+		Count:         len(deliveries),
+	})
+}
+
+// UpdateCall обновляет заявку на звонок по теме
+func (h *Handler) UpdateCall(ctx *gin.Context) {
+	var request models.UpdateCallRequest
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	request.ID = uint(id)
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	fmt.Println("даты:", request.DeliveryDate)
+	layout := "2006-01-02" // Измените формат на этот, если вы передаете дату без времени
+	deliveryDate, err := time.Parse(layout, request.DeliveryDate)
+	if err != nil {
+		fmt.Println("Ошибка при парсинге даты:", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
+		return
+	}
+	call := &ds.DeliveryRequest{
+		ID:           request.ID,
+		Address:      request.Address,
+		DeliveryDate: deliveryDate,
+		DeliveryType: request.DeliveryType,
+	}
+	resp, err := h.Repository.UpdateCall(call)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, models.UpdateCallResponse{
+		CallRequest: resp,
+	})
+}
+
+// FormCall - формирует заявку на звонок
+func (h *Handler) FormCall(ctx *gin.Context) {
+	var request models.FinishCallRequest
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	request.ID = uint(id)
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	fmt.Println(request.UserID, "")
+	resp, err := h.Repository.FormCall(request.ID, request.UserID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, models.UpdateCallResponse{
+		CallRequest: resp,
+	})
+}
+
+// CompleteOrRejectCall - завершает заявку на звонок
+func (h *Handler) CompleteOrRejectCall(ctx *gin.Context) {
+	var request models.CompleteOrRejectCallRequest
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	request.ID = uint(id)
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Получаем полный объект call из базы данных
+	call, err := h.Repository.GetCallRequestById(request.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Устанавливаем ModeratorID из запроса
+	call.ModeratorID = request.ModeratorID
+
+	resp, totalCount, err := h.Repository.CompleteOrRejectCall(call, request.IsComplete)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, models.CompleteOrRejectCallResponse{
+		CallRequest: resp,
+		TotalCount:  totalCount,
+	})
+}

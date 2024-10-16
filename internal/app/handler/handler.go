@@ -21,7 +21,7 @@ func NewHandler(l *logrus.Logger, r *repository.Repository) *Handler {
 const (
 	DeliveryDomain = "/delivery"
 	CallDomain     = "/call"
-	RiDomain       = "/ri"
+	RiDomain       = "/dc"
 	UserDomain     = "/user"
 )
 
@@ -45,22 +45,25 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 
 	// домен заявки /call
 	router.GET(CallDomain, h.GetCalls)
+	router.GET(CallDomain+"/:id", h.GetCall)
+	router.PUT(CallDomain+"/:id", h.UpdateCall)
+	router.PUT(CallDomain+"/form/:id", h.FormCall)
+	router.PUT(CallDomain+"/complete/:id", h.CompleteOrRejectCall)
+	router.DELETE(CallDomain+"/:id", h.DeleteCall)
+
+	// домен м-м
+	router.DELETE(RiDomain+"/delete/:id", h.DeleteDC)
+	router.PUT(RiDomain+"/count/:id", h.UpdateDCCount)
+
+	// домен пользователя
+	router.POST(UserDomain, h.CreateUser)
+	router.PUT(UserDomain+"/update", h.UpdateUser)
+	router.POST(UserDomain+"/auth", h.AuthUser)
+	router.POST(UserDomain+"/logout", h.LogoutUser)
+
 	/*
 
 
-		router.GET(CallDomain, h.GetMyCallCards)
-		router.PUT(CallDomain+"/:id", h.UpdateCall)
-		router.PUT(CallDomain+"/:id", h.FinishCall)
-		router.DELETE(CallDomain+"/:id", h.DeleteCall)
-
-		// домен м-м
-		router.DELETE(RiDomain+"/delete/:id", h.DeleteRi)
-		router.PUT(RiDomain+"/count/:id", h.UpdateRiCount)
-
-		// домен пользователя
-		router.POST(UserDomain, h.CreateUser)
-		router.PUT(UserDomain+"/:id", h.Update)
-		router.POST("/auth", h.AuthenticateUser)
 		router.POST("/logout", h.LogoutUser)
 	*/
 }

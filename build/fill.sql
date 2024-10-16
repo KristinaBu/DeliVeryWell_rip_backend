@@ -42,3 +42,4 @@ ALTER TABLE delivery_items
     ALTER COLUMN description TYPE text,
     ALTER COLUMN description SET NOT NULL,
     ALTER COLUMN is_delete SET DEFAULT false;
+

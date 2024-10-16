@@ -15,6 +15,7 @@ type DeliveryRequest struct {
 	UserID       uint      `json:"-"`
 	ModeratorID  uint      `json:"-"`
 	User         User      `json:"-" gorm:"foreignKey:UserID"`
+	Moderator    User      `json:"-" gorm:"foreignKey:ModeratorID"`
 }
 
 const (
