@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"fmt"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"mime/multipart"
@@ -13,10 +12,9 @@ type MinioStorage struct {
 	client *minio.Client
 }
 
-func NewMinioStorage(endpoint, accessKey, secretKey string, secure bool) (*MinioStorage, error) {
+func NewMinioStorage(endpoint, accessKey, secretKey string) (*MinioStorage, error) {
 	client, err := minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
-		Secure: secure,
+		Creds: credentials.NewStaticV4(accessKey, secretKey, ""),
 	})
 	if err != nil {
 		return nil, err
@@ -28,7 +26,6 @@ func (s *MinioStorage) LoadImg(bucketName, fileName string, file multipart.File,
 	if bucketName == "" {
 		bucketName = os.Getenv("MINIO_BUCKET_NAME")
 	}
-	fmt.Println(bucketName, fileName, file, fileSize, "!!!!!!!!!!!!!!!!!!!")
 	_, err := s.client.PutObject(context.Background(), bucketName, fileName, file, fileSize, minio.PutObjectOptions{})
 	return err
 }

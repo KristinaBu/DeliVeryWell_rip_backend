@@ -7,7 +7,10 @@ import (
 	"strconv"
 )
 
-// DeleteDC - удаляет услугу из заявки
+// Ping godoc
+// @Summary Delete delivery call
+// @Description delete delivery call
+
 func (h *Handler) DeleteDC(ctx *gin.Context) {
 	callId, _ := strconv.Atoi(ctx.Param("id"))
 	var request models.DeleteDCRequest

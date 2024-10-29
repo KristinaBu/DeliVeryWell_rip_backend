@@ -10,7 +10,15 @@ import (
 	"time"
 )
 
-// GetCalls - возращает все заявки
+// Ping godoc
+// @Summary Get all calls
+// @Description get all calls
+// @Tags handler
+// @Produce json
+// @Success 200 {object} models.GetCallsResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /call [get]
 func (h *Handler) GetCalls(ctx *gin.Context) {
 	var request models.GetCallsRequest
 	dateFromQuery := ctx.Query("date_from")
@@ -47,7 +55,15 @@ func (h *Handler) GetCalls(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, models.GetCallsResponse{Calls: calls})
 }
 
-// DeleteCall - устанавливает статус "удалено" для звонка
+// Ping godoc
+// @Summary Delete call
+// @Description delete call
+// @Tags handler
+// @Produce json
+// @Param id path string true "Call ID"
+// @Success 200 {object} models.SuccessResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /call/{id} [delete]
 func (h *Handler) DeleteCall(ctx *gin.Context) {
 	id := ctx.Param("id")
 
@@ -60,7 +76,17 @@ func (h *Handler) DeleteCall(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
 }
 
-// GetMyCallCards рисует страницу с заявкой
+// Ping godoc
+// @Summary Get my call cards
+// @Description get my call cards
+// @Tags handler
+// @Produce json
+// @Param id path string true "Call ID"
+// @Success 200 {object} models.GetMyCallCardsResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /call/{id} [get]
 func (h *Handler) GetMyCallCards(ctx *gin.Context) {
 	if callRequestId, err := strconv.Atoi(ctx.Param("id")); err == nil {
 		// Предполагаем, что пользователь идентификатор равен 1
@@ -93,7 +119,16 @@ func (h *Handler) GetMyCallCards(ctx *gin.Context) {
 	}
 }
 
-// GetCall возвращает заявку на звонок-заявку
+// Ping godoc
+// @Summary Get call
+// @Description get call by id
+// @Tags handler
+// @Produce json
+// @Param id path string true "Call ID"
+// @Success 200 {object} models.GetCallResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /call/{id} [get]
 func (h *Handler) GetCall(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	call, err := h.Repository.GetCallRequestById(uint(id))
@@ -125,7 +160,17 @@ func (h *Handler) GetCall(ctx *gin.Context) {
 	})
 }
 
-// UpdateCall обновляет заявку на звонок по теме
+// Ping godoc
+// @Summary Update call
+// @Description update call
+// @Tags handler
+// @Produce json
+// @Param id path string true "Call ID"
+// @Param request body UpdateCallRequest true "Call info"
+// @Success 200 {object} models.UpdateCallResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /call/{id} [put]
 func (h *Handler) UpdateCall(ctx *gin.Context) {
 	var request models.UpdateCallRequest
 	id, _ := strconv.Atoi(ctx.Param("id"))
@@ -158,7 +203,17 @@ func (h *Handler) UpdateCall(ctx *gin.Context) {
 	})
 }
 
-// FormCall - формирует заявку на звонок
+// Ping godoc
+// @Summary Form call
+// @Description form call
+// @Tags handler
+// @Produce json
+// @Param id path string true "Call ID"
+// @Param request body FinishCallRequest true "Call info"
+// @Success 200 {object} models.UpdateCallResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /call/form/{id} [put]
 func (h *Handler) FormCall(ctx *gin.Context) {
 	var request models.FinishCallRequest
 	id, _ := strconv.Atoi(ctx.Param("id"))
@@ -179,7 +234,17 @@ func (h *Handler) FormCall(ctx *gin.Context) {
 	})
 }
 
-// CompleteOrRejectCall - завершает заявку на звонок
+// Ping godoc
+// @Summary Complete or reject call
+// @Description complete or reject call
+// @Tags handler
+// @Produce json
+// @Param id path string true "Call ID"
+// @Param request body CompleteOrRejectCallRequest true "Call info"
+// @Success 200 {object} models.CompleteOrRejectCallResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /call/complete/{id} [put]
 func (h *Handler) CompleteOrRejectCall(ctx *gin.Context) {
 	var request models.CompleteOrRejectCallRequest
 	id, _ := strconv.Atoi(ctx.Param("id"))

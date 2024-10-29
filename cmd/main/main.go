@@ -11,6 +11,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// @title DeliVeryWell
+// @version 1.0
+// @description Delivery service
+
+// @host 127.0.0.1
+// @schemes http
+// @BasePath /
 func main() {
 	logger := logrus.New()
 	router := gin.Default()
