@@ -3,8 +3,12 @@ package handler
 import (
 	"BMSTU_IU5_53B_rip/internal/app/ds"
 	"BMSTU_IU5_53B_rip/internal/app/models"
+	"BMSTU_IU5_53B_rip/internal/app/storage"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 )
 
@@ -17,25 +21,14 @@ func (h *Handler) GetAllDelivery(ctx *gin.Context) {
 	request.PriceTo = priceTo
 
 	userId := 1
-	reqCount, err := h.Repository.GetDeliveryReqCount(ds.DraftStatus, uint(userId))
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
+	reqCount, _ := h.Repository.GetDeliveryReqCount(ds.DraftStatus, uint(userId))
 
-	}
-	reqID, err_ := h.Repository.HasRequestByUserID(uint(userId))
-	if err_ != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err_.Error(),
-		})
-		return
-
-	}
+	// Проверка на наличие заявки
+	reqID, _ := h.Repository.HasRequestByUserID(uint(userId))
+	// Если заявки нет, нужно вывести заявку с нулевыми полями, пустую
 
 	var cards *[]ds.DeliveryItem
-
+	var err error
 	if request.PriceFrom == "" && request.PriceTo == "" {
 		cards, err = h.Repository.DeliveryItemList()
 	} else {
@@ -48,7 +41,6 @@ func (h *Handler) GetAllDelivery(ctx *gin.Context) {
 		})
 		return
 	}
-
 	response := models.GetAllDeliveryResponse{
 		ReqID:        int(reqID),
 		ReqCallCount: int(reqCount),
@@ -103,26 +95,67 @@ func (h *Handler) CreateDelivery(ctx *gin.Context) {
 // UploadImage загружает изображение в minio
 func (h *Handler) UploadImage(ctx *gin.Context) {
 	var request models.UploadImageRequest
-	err := ctx.BindJSON(&request)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-	// Извлекаем ID из параметров маршрута
-	id := ctx.Param("id")
+	// считываем id из запроса
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	request.ID = uint(id)
 
-	ImageURL, err_ := h.Repository.UploadImage(id, request.ImageURL)
-	if err_ != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err_.Error(),
-		})
+	// Привязать данные из запроса к структуре
+	if err := ctx.ShouldBind(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
-	ctx.JSON(http.StatusOK, models.UploadImageResponse{
-		ImageURL: ImageURL,
-	})
+
+	// Проверка, что поле Image не является nil
+	if request.Image == nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "No image in request"})
+		return
+	}
+
+	// Инициализация Minio хранилища
+	minioStorage, err := storage.NewMinioStorage(
+		os.Getenv("MINIO_ENDPOINT_URL"),
+		os.Getenv("MINIO_ACCESS_KEY"),
+		os.Getenv("MINIO_SECRET_KEY"),
+		os.Getenv("MINIO_SECURE") == "true",
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize Minio client"})
+		return
+	}
+	fmt.Println(request.ID, "IDDDDDDDDDDDD")
+
+	// Извлечение файла из запроса
+	file, err := request.Image.Open()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to open image"})
+		return
+	}
+	defer file.Close()
+
+	// Генерация имени файла
+	fileExtension := filepath.Ext(request.Image.Filename)
+	fileName := strconv.Itoa(int(request.ID)) + fileExtension
+
+	// Загрузка файла в Minio
+	err = minioStorage.LoadImg(os.Getenv("MINIO_BUCKET_NAME"), fileName, file, request.Image.Size)
+	//fmt.Println(request.Image, "Image")
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load image"})
+		return
+	}
+
+	// Генерация URL изображения
+	imageURL := "http://" + os.Getenv("MINIO_ENDPOINT_URL") + "/" + os.Getenv("MINIO_BUCKET_NAME") + "/" + fileName
+
+	delivery, err := h.Repository.GetDeliveryItemByID(strconv.Itoa(int(request.ID)))
+	if delivery == nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Delivery not found"})
+		return
+	}
+	strURL, _ := h.Repository.UploadImage(strconv.Itoa(int(request.ID)), imageURL)
+
+	// Ответ с URL изображения
+	ctx.JSON(http.StatusOK, gin.H{"image_url": strURL})
 }
 
 // UpdateDelivery обновляет карточку

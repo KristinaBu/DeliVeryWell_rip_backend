@@ -66,10 +66,6 @@ func (r *Repository) GetDeliveryReqCount(status string, userId uint) (int64, err
 	if err != nil {
 		return 0, err
 	}
-	fmt.Println("Count ", count,
-		"reqID ", reqID,
-		"status ", status)
-
 	return count, nil
 }
 
@@ -149,6 +145,16 @@ func (r *Repository) CreateDraftRequestAndGetID(userID uint) (uint, error) {
 
 // LinkItemToDraftRequest связывает элемент с черновиком заявки
 func (r *Repository) LinkItemToDraftRequest(userID uint, itemId uint) error {
+	// нужно проверить, является ли доставка удаленной
+	var item ds.DeliveryItem
+	err_ := r.db.Where("id = ?", itemId).First(&item).Error
+	if err_ != nil {
+		return fmt.Errorf("error fetching item: %w", err_)
+	}
+	if item.IsDelete == true {
+		return fmt.Errorf("item with id %d is deleted", itemId)
+	}
+
 	// поик существующей заявки пользователя со статусом 'черновик'
 	var draftRequest ds.DeliveryRequest
 	err := r.db.Where("user_id = ? AND status = ?", userID, ds.DraftStatus).First(&draftRequest).Error
@@ -186,7 +192,11 @@ func (r *Repository) LinkItemToDraftRequest(userID uint, itemId uint) error {
 func (r *Repository) HasRequestByUserID(userID uint) (uint, error) {
 	var req ds.DeliveryRequest
 	err := r.db.Where("user_id = ? AND status = ?", userID, ds.DraftStatus).First(&req).Error
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Если ошибка о том, то записи нет, то нет ошибки, тк нужно потом вывести заявку с null+0 полями
+			return 0, nil
+		}
 		return 0, err
 	}
 	return req.ID, nil
@@ -223,7 +233,6 @@ func (r *Repository) UpdateCall(call *ds.DeliveryRequest) (*ds.DeliveryRequest, 
 	return &updatedCall, nil
 }
 
-// FormCall - формирование звонка
 // FormCall - формирование звонка
 func (r *Repository) FormCall(callID uint, userID uint) (*ds.DeliveryRequest, error) {
 	// Получение звонка из базы данных
@@ -312,4 +321,14 @@ func (r *Repository) CompleteOrRejectCall(call *ds.DeliveryRequest, isComplete b
 	}
 
 	return &updatedCall, totalItemCount, nil
+}
+
+// GetItemRequestsByCallRequestID возвращает элементы заявки по ID звонка-заявки
+func (r *Repository) GetItemRequestsByCallRequestID(callRequestID uint) ([]ds.Item_request, error) {
+	var itemRequests []ds.Item_request
+	err := r.db.Where("request_id = ?", callRequestID).Preload("Item").Find(&itemRequests).Error
+	if err != nil {
+		return nil, err
+	}
+	return itemRequests, nil
 }

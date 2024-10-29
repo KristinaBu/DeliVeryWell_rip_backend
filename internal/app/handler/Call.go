@@ -93,7 +93,7 @@ func (h *Handler) GetMyCallCards(ctx *gin.Context) {
 	}
 }
 
-// GetCall возвращает заявку на звонок
+// GetCall возвращает заявку на звонок-заявку
 func (h *Handler) GetCall(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	call, err := h.Repository.GetCallRequestById(uint(id))
@@ -101,11 +101,27 @@ func (h *Handler) GetCall(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	deliveries, err := h.Repository.GetDeliveryItemsByCallRequestID(uint(id))
-	ctx.JSON(http.StatusOK, models.GetMyCallCardsResponse{
-		CallRequest:   call,
-		DeliveryItems: deliveries,
-		Count:         len(deliveries),
+
+	// Получаем все доставки для этой заявки на звонок
+	itemRequests, err := h.Repository.GetItemRequestsByCallRequestID(uint(id))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Формируем список доставок с количеством
+	var deliveryItemsWithCount []models.DeliveryItemWithCount
+	for _, itemRequest := range itemRequests {
+		deliveryItemsWithCount = append(deliveryItemsWithCount, models.DeliveryItemWithCount{
+			DeliveryItem: itemRequest.Item,
+			Count:        itemRequest.Count,
+		})
+	}
+
+	ctx.JSON(http.StatusOK, models.GetCallResponse{
+		CallRequest:     call,
+		DeliveryItems:   deliveryItemsWithCount,
+		DeliveriesCount: len(deliveryItemsWithCount),
 	})
 }
 

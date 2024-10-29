@@ -1,6 +1,9 @@
 package models
 
-import "BMSTU_IU5_53B_rip/internal/app/ds"
+import (
+	"BMSTU_IU5_53B_rip/internal/app/ds"
+	"mime/multipart"
+)
 
 // Запрос
 
@@ -21,7 +24,8 @@ type CreateDeliveryRequest struct {
 }
 
 type UploadImageRequest struct {
-	ImageURL string `json:"image_url"`
+	ID    uint                  `json:"id"`
+	Image *multipart.FileHeader `form:"image"` // Поле для файла
 }
 
 // Ответ

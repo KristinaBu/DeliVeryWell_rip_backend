@@ -26,13 +26,6 @@ const (
 )
 
 func (h *Handler) RegisterHandler(router *gin.Engine) {
-	/*
-		router.GET("/", h.GetAllDelivery)
-		router.GET(DeliveryDomain+"/:id", h.GetDelivery)
-		router.POST("/delete/:id", h.DeleteDeliveryReq)
-		router.POST("/add/:id", h.AddDeliveryToCall)
-		router.GET("/mycalls/:callrequest_id", h.GetMyCallCards)
-	*/
 
 	// домен услуги /delivery
 	router.GET(DeliveryDomain, h.GetAllDelivery)
@@ -60,12 +53,6 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.PUT(UserDomain+"/update", h.UpdateUser)
 	router.POST(UserDomain+"/auth", h.AuthUser)
 	router.POST(UserDomain+"/logout", h.LogoutUser)
-
-	/*
-
-
-		router.POST("/logout", h.LogoutUser)
-	*/
 }
 
 func (h *Handler) RegisterStatic(router *gin.Engine) {

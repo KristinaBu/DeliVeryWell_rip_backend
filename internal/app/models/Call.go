@@ -44,6 +44,18 @@ type GetMyCallCardsResponse struct {
 	Count         int                 `json:"count"`          // количество карточек
 }
 
+type GetCallResponse struct {
+	CallRequest   *ds.DeliveryRequest     `json:"call_request"`   // заявка на доставку
+	DeliveryItems []DeliveryItemWithCount `json:"delivery_items"` // карточки доставки
+	// общее число доставок
+	DeliveriesCount int `json:"deliveries_count"`
+}
+
+type DeliveryItemWithCount struct {
+	ds.DeliveryItem
+	Count int `json:"count"`
+}
+
 type UpdateCallResponse struct {
 	CallRequest *ds.DeliveryRequest `json:"call_request"` // заявка на доставку
 }
