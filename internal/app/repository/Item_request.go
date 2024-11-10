@@ -5,7 +5,6 @@ import (
 	"fmt"
 )
 
-// DeleteDC - удаляет услугу из заявки
 func (r *Repository) DeleteDC(deliveryID uint, callID uint) error {
 	// Получение услуги из базы данных
 	var existingDC ds.Item_request
@@ -32,7 +31,6 @@ func (r *Repository) DeleteDC(deliveryID uint, callID uint) error {
 	return nil
 }
 
-// UpdateDCCount - обновляет количество услуг в заявке
 func (r *Repository) UpdateDCCount(deliveryID uint, callID uint, count int) error {
 	if count <= 0 {
 		return fmt.Errorf("not positive count")
@@ -59,5 +57,17 @@ func (r *Repository) UpdateDCCount(deliveryID uint, callID uint, count int) erro
 	if result.Error != nil {
 		return result.Error
 	}
+	return nil
+}
+
+// CreateDC - создание связи между услугой и заявкой, count = 1 default
+func (r *Repository) CreateDC(itemID, requestID uint) error {
+	itemRequest := ds.Item_request{
+		ItemID:    itemID,
+		RequestID: requestID,
+		Count:     1,
+	}
+	_ = r.db.Create(&itemRequest).Error
+
 	return nil
 }

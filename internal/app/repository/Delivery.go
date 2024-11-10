@@ -46,7 +46,6 @@ func (r *Repository) GetDeliveryItemByID(id string) (*ds.DeliveryItem, error) {
 	var DelItem ds.DeliveryItem
 	intID, _ := strconv.Atoi(id)
 	r.db.Find(&DelItem, intID)
-	print(DelItem.ID, "ID")
 	return &DelItem, nil
 }
 

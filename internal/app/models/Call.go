@@ -8,6 +8,7 @@ type GetCallsRequest struct {
 	DateFrom string `form:"date_from"` // дата начала диапазона
 	DateTo   string `form:"date_to"`   // дата конца диапазона
 	Status   string `form:"status"`    // статус
+	UserID   uint   `form:"user_id"`   // идентификатор пользователя
 }
 
 type GetMyCallCardsRequest struct {
@@ -47,13 +48,18 @@ type GetMyCallCardsResponse struct {
 type GetCallResponse struct {
 	CallRequest   *ds.DeliveryRequest     `json:"call_request"`   // заявка на доставку
 	DeliveryItems []DeliveryItemWithCount `json:"delivery_items"` // карточки доставки
-	// общее число доставок
-	DeliveriesCount int `json:"deliveries_count"`
+}
+
+type DeliveryItemWithoutDescription struct {
+	ID    uint   `json:"id"`
+	Image string `json:"image"`
+	Title string `json:"title"`
+	Price int    `json:"price"`
 }
 
 type DeliveryItemWithCount struct {
-	ds.DeliveryItem
-	Count int `json:"count"`
+	DeliveryItem DeliveryItemWithoutDescription
+	Count        int `json:"count"`
 }
 
 type UpdateCallResponse struct {

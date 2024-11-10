@@ -31,9 +31,7 @@ type UploadImageRequest struct {
 // Ответ
 
 type GetAllDeliveryResponse struct {
-	ReqID        int                `json:"req_id"`
-	ReqCallCount int                `json:"req_call_count"`
-	Payload      *[]ds.DeliveryItem `json:"payload"`
+	Payload *[]ds.DeliveryItem `json:"payload"`
 }
 
 type GetDeliveryResponse struct {
@@ -49,5 +47,6 @@ type UploadImageResponse struct {
 }
 
 type AddDeliveryToCallResponse struct {
-	DeliveryItem *ds.DeliveryItem `json:"delivery"`
+	DeliveryItem    *ds.DeliveryItem    `json:"delivery"`
+	DeliveryRequest *ds.DeliveryRequest `json:"request"`
 }

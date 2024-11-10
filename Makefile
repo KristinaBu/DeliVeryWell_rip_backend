@@ -10,3 +10,6 @@ db-interface:
 
 migrate-up:
 	go run cmd/migrate/main.go up # миграция орм
+
+gen-swag:
+	swag init -g internal/app/handler/Call.go  # генерация документации

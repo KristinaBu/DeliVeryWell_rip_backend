@@ -10,6 +10,13 @@ INSERT INTO delivery_items (image, title, price, description) VALUES
 ('http://127.0.0.1:9000/images/4.png', 'Цветы', 799, 'Доставка цветов, букетов, упаковочных материалов в Москве'),
 ('http://127.0.0.1:9000/images/5.png', 'Суши', 200, 'Доставка суши в Москве за 200 рублей. При покупке товара на сумму более 500 рублей - доставка 100 рублей (Суши Мастер)');
 
+INSERT INTO delivery_requests (user_id, delivery_date, status) VALUES
+(1, '2021-12-31', 'черновик');
+
+INSERT INTO item_requests (request_id, item_id, count) VALUES
+(4, 1, 1),
+(4, 5, 5);
+
 
 -- Создание функции для проверки черновиковitem_r
 CREATE FUNCTION check_draft_request() RETURNS trigger AS $$

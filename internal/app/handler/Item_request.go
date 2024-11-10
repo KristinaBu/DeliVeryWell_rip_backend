@@ -7,10 +7,15 @@ import (
 	"strconv"
 )
 
-// Ping godoc
-// @Summary Delete delivery call
-// @Description delete delivery call
-
+// DeleteDC
+// @Description delete dc
+// @Tags DC
+// @Produce  json
+// @Param id path int true "call id"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /dc/delete/{id} [delete]
 func (h *Handler) DeleteDC(ctx *gin.Context) {
 	callId, _ := strconv.Atoi(ctx.Param("id"))
 	var request models.DeleteDCRequest
@@ -29,7 +34,15 @@ func (h *Handler) DeleteDC(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
 }
 
-// UpdateDCCount - обновляет количество услуг в заявке
+// UpdateDCCount
+// @Description update dc count
+// @Tags DC
+// @Produce  json
+// @Param id path int true "call id"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /dc/count/{id} [put]
 func (h *Handler) UpdateDCCount(ctx *gin.Context) {
 	callId, _ := strconv.Atoi(ctx.Param("id"))
 	var request models.UpdateDCCountRequest

@@ -30,7 +30,9 @@ func main() {
 
 	fmt.Println(postgresString)
 
-	rep, err := repository.NewRepository(postgresString, logger)
+	redis := conf.Redis
+
+	rep, err := repository.NewRepository(postgresString, logger, redis)
 	if err != nil {
 		logrus.Fatalln("Error with repo: err", err)
 	}

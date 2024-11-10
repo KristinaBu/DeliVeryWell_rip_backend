@@ -13,9 +13,10 @@ type DeliveryRequest struct {
 	DeliveryDate time.Time `json:"delivery_date"`
 	DeliveryType string    `json:"delivery_type" gorm:"type:varchar(255)"`
 	UserID       uint      `json:"-"`
-	ModeratorID  uint      `json:"-"`
+	ModeratorID  *uint     `json:"-"`
 	User         User      `json:"-" gorm:"foreignKey:UserID"`
 	Moderator    User      `json:"-" gorm:"foreignKey:ModeratorID"`
+	DeliveryTime int64     `json:"delivery_time"`
 }
 
 const (

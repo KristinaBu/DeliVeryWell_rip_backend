@@ -10,17 +10,23 @@ import (
 	"time"
 )
 
-// Ping godoc
-// @Summary Get all calls
+// GetCalls
 // @Description get all calls
-// @Tags handler
+// @Tags call
 // @Produce json
 // @Success 200 {object} models.GetCallsResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /call [get]
 func (h *Handler) GetCalls(ctx *gin.Context) {
 	var request models.GetCallsRequest
+	userID, ok := ctx.Get("user_id")
+	if !ok {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "userID not found"})
+		return
+	}
+	request.UserID = userID.(uint)
+
 	dateFromQuery := ctx.Query("date_from")
 	dateToQuery := ctx.Query("date_to")
 	statusQuery := ctx.Query("status")
@@ -28,6 +34,7 @@ func (h *Handler) GetCalls(ctx *gin.Context) {
 	request.DateFrom = dateFromQuery
 	request.DateTo = dateToQuery
 	request.Status = statusQuery
+
 	if err := ctx.ShouldBindQuery(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -44,7 +51,7 @@ func (h *Handler) GetCalls(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	calls, err := h.Repository.GetCalls(dateFrom, dateTo, request.Status)
+	calls, err := h.Repository.GetCalls(dateFrom, dateTo, request.Status, request.UserID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -55,14 +62,13 @@ func (h *Handler) GetCalls(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, models.GetCallsResponse{Calls: calls})
 }
 
-// Ping godoc
-// @Summary Delete call
+// DeleteCall
 // @Description delete call
-// @Tags handler
+// @Tags call
 // @Produce json
 // @Param id path string true "Call ID"
-// @Success 200 {object} models.SuccessResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Success 200 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /call/{id} [delete]
 func (h *Handler) DeleteCall(ctx *gin.Context) {
 	id := ctx.Param("id")
@@ -76,16 +82,15 @@ func (h *Handler) DeleteCall(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
 }
 
-// Ping godoc
-// @Summary Get my call cards
+// GetMyCallCards
 // @Description get my call cards
-// @Tags handler
+// @Tags call
 // @Produce json
 // @Param id path string true "Call ID"
 // @Success 200 {object} models.GetMyCallCardsResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /call/{id} [get]
 func (h *Handler) GetMyCallCards(ctx *gin.Context) {
 	if callRequestId, err := strconv.Atoi(ctx.Param("id")); err == nil {
@@ -119,15 +124,15 @@ func (h *Handler) GetMyCallCards(ctx *gin.Context) {
 	}
 }
 
-// Ping godoc
-// @Summary Get call
+// GetCall
 // @Description get call by id
-// @Tags handler
+// @Tags call
 // @Produce json
 // @Param id path string true "Call ID"
 // @Success 200 {object} models.GetCallResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 403 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /call/{id} [get]
 func (h *Handler) GetCall(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
@@ -147,29 +152,34 @@ func (h *Handler) GetCall(ctx *gin.Context) {
 	// Формируем список доставок с количеством
 	var deliveryItemsWithCount []models.DeliveryItemWithCount
 	for _, itemRequest := range itemRequests {
+		// Преобразование DeliveryItem в DeliveryItemWithoutDescription
+		itemWithoutDescription := models.DeliveryItemWithoutDescription{
+			ID:    itemRequest.Item.ID,
+			Image: itemRequest.Item.Image,
+			Title: itemRequest.Item.Title,
+			Price: itemRequest.Item.Price,
+		}
+
 		deliveryItemsWithCount = append(deliveryItemsWithCount, models.DeliveryItemWithCount{
-			DeliveryItem: itemRequest.Item,
+			DeliveryItem: itemWithoutDescription,
 			Count:        itemRequest.Count,
 		})
 	}
 
 	ctx.JSON(http.StatusOK, models.GetCallResponse{
-		CallRequest:     call,
-		DeliveryItems:   deliveryItemsWithCount,
-		DeliveriesCount: len(deliveryItemsWithCount),
+		CallRequest:   call,
+		DeliveryItems: deliveryItemsWithCount,
 	})
 }
 
-// Ping godoc
-// @Summary Update call
+// UpdateCall
 // @Description update call
-// @Tags handler
+// @Tags call
 // @Produce json
 // @Param id path string true "Call ID"
-// @Param request body UpdateCallRequest true "Call info"
 // @Success 200 {object} models.UpdateCallResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /call/{id} [put]
 func (h *Handler) UpdateCall(ctx *gin.Context) {
 	var request models.UpdateCallRequest
@@ -203,16 +213,14 @@ func (h *Handler) UpdateCall(ctx *gin.Context) {
 	})
 }
 
-// Ping godoc
-// @Summary Form call
+// FormCall
 // @Description form call
-// @Tags handler
+// @Tags call
 // @Produce json
 // @Param id path string true "Call ID"
-// @Param request body FinishCallRequest true "Call info"
 // @Success 200 {object} models.UpdateCallResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /call/form/{id} [put]
 func (h *Handler) FormCall(ctx *gin.Context) {
 	var request models.FinishCallRequest
@@ -234,16 +242,14 @@ func (h *Handler) FormCall(ctx *gin.Context) {
 	})
 }
 
-// Ping godoc
-// @Summary Complete or reject call
+// CompleteOrRejectCall
 // @Description complete or reject call
-// @Tags handler
+// @Tags call
 // @Produce json
 // @Param id path string true "Call ID"
-// @Param request body CompleteOrRejectCallRequest true "Call info"
 // @Success 200 {object} models.CompleteOrRejectCallResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /call/complete/{id} [put]
 func (h *Handler) CompleteOrRejectCall(ctx *gin.Context) {
 	var request models.CompleteOrRejectCallRequest
@@ -262,7 +268,7 @@ func (h *Handler) CompleteOrRejectCall(ctx *gin.Context) {
 	}
 
 	// Устанавливаем ModeratorID из запроса
-	call.ModeratorID = request.ModeratorID
+	call.ModeratorID = &request.ModeratorID
 
 	resp, totalCount, err := h.Repository.CompleteOrRejectCall(call, request.IsComplete)
 	if err != nil {

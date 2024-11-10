@@ -4,6 +4,7 @@ import (
 	"BMSTU_IU5_53B_rip/internal/app/ds"
 	"BMSTU_IU5_53B_rip/internal/app/models"
 	"BMSTU_IU5_53B_rip/internal/app/storage"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -11,14 +12,13 @@ import (
 	"strconv"
 )
 
-// Ping godoc
-// @Summary Get all delivery
+// GetAllDelivery
 // @Description get all delivery
-// @Tags handler
+// @Tags delivery
 // @Produce  json
 // @Success 200 {object} models.GetAllDeliveryResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /delivery [get]
 func (h *Handler) GetAllDelivery(ctx *gin.Context) {
 	var request models.GetAllDeliveryRequest
@@ -26,13 +26,6 @@ func (h *Handler) GetAllDelivery(ctx *gin.Context) {
 	priceTo := ctx.Query("price_to")
 	request.PriceFrom = priceFrom
 	request.PriceTo = priceTo
-
-	userId := 1
-	reqCount, _ := h.Repository.GetDeliveryReqCount(ds.DraftStatus, uint(userId))
-
-	// Проверка на наличие заявки
-	reqID, _ := h.Repository.HasRequestByUserID(uint(userId))
-	// Если заявки нет, нужно вывести заявку с нулевыми полями, пустую
 
 	var cards *[]ds.DeliveryItem
 	var err error
@@ -49,21 +42,19 @@ func (h *Handler) GetAllDelivery(ctx *gin.Context) {
 		return
 	}
 	response := models.GetAllDeliveryResponse{
-		ReqID:        int(reqID),
-		ReqCallCount: int(reqCount),
-		Payload:      cards,
+		Payload: cards,
 	}
 
 	ctx.JSON(http.StatusOK, response)
 }
 
-// Ping godoc
-// @Summary Get delivery
+// GetDelivery
 // @Description get delivery by id
-// @Tags handler
+// @Tags delivery
 // @Produce json
+// @Param id path string true "Delivery ID"
 // @Success 200 {object} models.GetDeliveryResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 500 {object} map[string]string
 // @Router /delivery/{id} [get]
 func (h *Handler) GetDelivery(ctx *gin.Context) {
 	var request models.GetDeliveryRequest
@@ -80,14 +71,13 @@ func (h *Handler) GetDelivery(ctx *gin.Context) {
 	})
 }
 
-// Ping godoc
-// @Summary Create delivery
+// CreateDelivery
 // @Description create delivery
-// @Tags handler
+// @Tags delivery
 // @Produce json
 // @Success 200 {object} models.CreateDeliveryResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /delivery [post]
 func (h *Handler) CreateDelivery(ctx *gin.Context) {
 	var request models.CreateDeliveryRequest
@@ -115,15 +105,14 @@ func (h *Handler) CreateDelivery(ctx *gin.Context) {
 	})
 }
 
-// Ping godoc
-// @Summary Upload image
+// UploadImage
 // @Description load image to delivery
-// @Tags handler
+// @Tags delivery
 // @Produce json
 // @Success 200 {object} models.UploadImageResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /delivery/img/{id} [post]
 func (h *Handler) UploadImage(ctx *gin.Context) {
 	var request models.UploadImageRequest
@@ -187,14 +176,13 @@ func (h *Handler) UploadImage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"image_url": strURL})
 }
 
-// Ping godoc
-// @Summary Update delivery
+// UpdateDelivery
 // @Description update delivery
-// @Tags handler
+// @Tags delivery
 // @Produce json
 // @Success 200 {object} models.CreateDeliveryResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
 // @Router /delivery/{id} [put]
 func (h *Handler) UpdateDelivery(ctx *gin.Context) {
 	var request models.CreateDeliveryRequest
@@ -226,13 +214,12 @@ func (h *Handler) UpdateDelivery(ctx *gin.Context) {
 
 }
 
-// Ping godoc
-// @Summary Delete delivery
-// @Description Delite delivery
-// @Tags handler
+// DeleteDelivery
+// @Description Delete delivery
+// @Tags delivery
 // @Produce json
 // @Success 200 {object} models.CreateDeliveryResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 500 {object} map[string]string
 // @Router /delivery/{id} [delete]
 func (h *Handler) DeleteDelivery(ctx *gin.Context) {
 	id := ctx.Param("id")
@@ -248,30 +235,41 @@ func (h *Handler) DeleteDelivery(ctx *gin.Context) {
 	})
 }
 
-// Ping godoc
-// @Summary Add delivery to call
+// AddDeliveryToCall
 // @Description Add delivery to call
-// @Tags handler
+// @Tags delivery
 // @Produce json
 // @Success 200 {object} models.AddDeliveryToCallResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 500 {object} map[string]string
 // @Router /delivery/add/{id} [post]
 func (h *Handler) AddDeliveryToCall(ctx *gin.Context) {
 	itemID := ctx.Param("id")
 	intItemID, _ := strconv.Atoi(itemID)
 	userID := 1
 
-	err := h.Repository.LinkItemToDraftRequest(uint(userID), uint(intItemID))
+	// Связываем элемент с черновиком заявки
+	req, err := h.Repository.LinkItemToDraftRequest(uint(userID), uint(intItemID))
 	if err != nil {
-	}
-	delivery, err_ := h.Repository.GetDeliveryItemByID(itemID)
-	if err_ != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err_.Error(),
+			"error": err.Error(),
 		})
+		fmt.Println("LinkItemToDraftRequest error")
 		return
 	}
+
+	// Получаем элемент доставки по ID
+	delivery, err := h.Repository.GetDeliveryItemByID(itemID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		fmt.Println("GetDeliveryItemByID error")
+		return
+	}
+
+	// Возвращаем ответ с элементом доставки и заявкой
 	ctx.JSON(http.StatusOK, models.AddDeliveryToCallResponse{
-		DeliveryItem: delivery,
+		DeliveryItem:    delivery,
+		DeliveryRequest: req,
 	})
 }
