@@ -146,13 +146,18 @@ func (r *Repository) HasRequestByUserID(userID uint) (uint, error) {
 }
 
 // GetMyCalls возвращает звонки пользователя в статусе черновик
-func (r *Repository) GetMyCalls(userID uint) ([]*ds.DeliveryRequest, error) {
-	var calls []*ds.DeliveryRequest
-	err := r.db.Where("user_id = ? AND status = ?", userID, ds.DraftStatus).Find(&calls).Error
+func (r *Repository) GetMyCalls(userID uint) (*ds.DeliveryRequest, int64, error) {
+	// ищем первый встретившийся черновик
+	var call *ds.DeliveryRequest
+	err := r.db.Where("user_id = ? AND status = ?", userID, ds.DraftStatus).First(&call).Error
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return calls, nil
+	count, err := r.GetDeliveryReqCount(ds.DraftStatus, userID)
+	if err != nil {
+		return nil, 0, err
+	}
+	return call, count, nil
 }
 
 // GetCalls - возвращает звонки с учетом фильтров

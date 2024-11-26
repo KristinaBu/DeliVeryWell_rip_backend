@@ -8,6 +8,7 @@ import (
 // Запрос
 
 type GetAllDeliveryRequest struct {
+	UserID    uint   `json:"user_id"`
 	PriceFrom string `json:"price_from"`
 	PriceTo   string `json:"price_to"`
 }
@@ -31,7 +32,9 @@ type UploadImageRequest struct {
 // Ответ
 
 type GetAllDeliveryResponse struct {
-	Payload *[]ds.DeliveryItem `json:"payload"`
+	Payload *[]ds.DeliveryItem  `json:"payload"`
+	Count   int64               `json:"count"`
+	Call    *ds.DeliveryRequest `json:"call"`
 }
 
 type GetDeliveryResponse struct {
@@ -44,6 +47,10 @@ type CreateDeliveryResponse struct {
 
 type UploadImageResponse struct {
 	ImageURL string `json:"image_url"`
+}
+
+type AddDeliveryToCallRequest struct {
+	UserID uint `json:"user_id"`
 }
 
 type AddDeliveryToCallResponse struct {

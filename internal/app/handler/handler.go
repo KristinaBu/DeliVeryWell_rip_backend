@@ -36,8 +36,29 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	docs.SwaggerInfo.Host = "localhost:8080"
 	docs.SwaggerInfo.BasePath = "/"
 
-	// домен услуги /delivery
-	router.GET(DeliveryDomain, h.GetAllDelivery)
+	router.GET(DeliveryDomain, h.RoleMiddleware1(AdminRole, UserRole, GuestRole), h.GetAllDelivery)
+	router.GET(DeliveryDomain+"/:id", h.GetDelivery)
+	router.POST(DeliveryDomain, h.RoleMiddleware1(AdminRole), h.CreateDelivery) // without img
+	router.POST(DeliveryDomain+"/img/:id", h.RoleMiddleware1(AdminRole), h.UploadImage)
+	router.PUT(DeliveryDomain+"/:id", h.RoleMiddleware1(AdminRole), h.UpdateDelivery)
+	router.DELETE(DeliveryDomain+"/:id", h.RoleMiddleware1(AdminRole), h.DeleteDelivery)
+	router.POST(DeliveryDomain+"/add/:id", h.RoleMiddleware1(AdminRole, UserRole), h.AddDeliveryToCall)
+
+	// домен заявки /call
+	router.GET(CallDomain, h.RoleMiddleware1(AdminRole, UserRole), h.GetCalls)
+	router.GET(CallDomain+"/:id", h.RoleMiddleware1(AdminRole, UserRole), h.GetCall)
+	router.PUT(CallDomain+"/:id", h.RoleMiddleware1(AdminRole, UserRole), h.UpdateCall)
+	router.PUT(CallDomain+"/form/:id", h.RoleMiddleware1(AdminRole), h.FormCall)
+	router.PUT(CallDomain+"/complete/:id", h.RoleMiddleware1(AdminRole), h.CompleteOrRejectCall)
+	router.DELETE(CallDomain+"/:id", h.RoleMiddleware1(AdminRole), h.DeleteCall)
+
+	// домен м-м
+	router.DELETE(RiDomain+"/delete/:id", h.RoleMiddleware1(AdminRole, UserRole), h.DeleteDC)
+	router.PUT(RiDomain+"/count/:id", h.RoleMiddleware1(AdminRole, UserRole), h.UpdateDCCount)
+
+	/*/
+	/ домен услуги /delivery
+	router.GET(DeliveryDomain, h.RoleMiddleware1(AdminRole, UserRole, GuestRole), h.GetAllDelivery)
 	router.GET(DeliveryDomain+"/:id", h.GetDelivery)
 	router.POST(DeliveryDomain, h.RoleMiddleware(ds.User{IsAdmin: true}),
 		h.CreateDelivery) // without img
@@ -69,13 +90,14 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 		h.DeleteDC)
 	router.PUT(RiDomain+"/count/:id", h.RoleMiddleware(ds.User{IsAdmin: true}, ds.User{IsAdmin: false}),
 		h.UpdateDCCount)
-
+	*/
 	// домен пользователя
 	router.POST(UserDomain+"/register", h.RegUser)
 	router.PUT(UserDomain+"/update", h.UpdateUser)
 	router.POST(UserDomain+"/login", h.AuthUser)
 	router.POST(UserDomain+"/logout", h.LogoutUser)
 
+	// для админа
 	router.GET(UserDomain+"/protected", h.RoleMiddleware(ds.User{IsAdmin: true}), func(ctx *gin.Context) {
 		userID := ctx.MustGet("user_id").(uint)
 

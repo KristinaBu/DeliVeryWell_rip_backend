@@ -1,6 +1,9 @@
 package ds
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type DeliveryRequest struct {
 	ID           uint      `json:"id" gorm:"primaryKey"`
@@ -32,3 +35,14 @@ const (
 	CourierDelivery = "Курьер"
 	CarDelivery     = "Грузовик"
 )
+
+func (d DeliveryRequest) MarshalJSON() ([]byte, error) {
+	type Alias DeliveryRequest
+	return json.Marshal(&struct {
+		DeliveryDate string `json:"delivery_date"`
+		*Alias
+	}{
+		DeliveryDate: d.DeliveryDate.Format("2006-01-02"),
+		Alias:        (*Alias)(&d),
+	})
+}

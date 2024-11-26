@@ -16,6 +16,8 @@ import (
 // @Description get all delivery
 // @Tags delivery
 // @Produce  json
+// @Param price_from query string false "Price from"
+// @Param price_to query string false "Price to"
 // @Success 200 {object} models.GetAllDeliveryResponse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -26,7 +28,7 @@ func (h *Handler) GetAllDelivery(ctx *gin.Context) {
 	priceTo := ctx.Query("price_to")
 	request.PriceFrom = priceFrom
 	request.PriceTo = priceTo
-
+	fmt.Println("priceFrom", priceFrom, "priceTo", priceTo)
 	var cards *[]ds.DeliveryItem
 	var err error
 	if request.PriceFrom == "" && request.PriceTo == "" {
@@ -41,11 +43,41 @@ func (h *Handler) GetAllDelivery(ctx *gin.Context) {
 		})
 		return
 	}
-	response := models.GetAllDeliveryResponse{
-		Payload: cards,
+	// смотрим заявку пользователя, если он авторизован
+	userId, exists := ctx.Get("user_id")
+	fmt.Println("user_id GetAllDelivery", userId)
+	fmt.Println(
+		"!exists GetAllDelivery", !exists,
+		"userId GetAllDelivery", userId,
+		"h.Repository.IsAdmin(userId.(uint)) GetAllDelivery", h.Repository.IsAdmin(userId.(uint)),
+	)
+	if !exists || userId.(uint) == 0 || h.Repository.IsAdmin(userId.(uint)) {
+		response := models.GetAllDeliveryResponse{
+			Payload: cards,
+			Count:   55,
+			Call:    nil,
+		}
+		ctx.JSON(http.StatusOK, response)
+		return
+	} else {
+		fmt.Println("user_id GetAllDelivery!!!", userId)
+		draftCall, count, err := h.Repository.GetMyCalls(userId.(uint))
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		response := models.GetAllDeliveryResponse{
+			Payload: cards,
+			Count:   count,
+			Call:    draftCall,
+		}
+
+		ctx.JSON(http.StatusOK, response)
 	}
 
-	ctx.JSON(http.StatusOK, response)
 }
 
 // GetDelivery
@@ -245,10 +277,15 @@ func (h *Handler) DeleteDelivery(ctx *gin.Context) {
 func (h *Handler) AddDeliveryToCall(ctx *gin.Context) {
 	itemID := ctx.Param("id")
 	intItemID, _ := strconv.Atoi(itemID)
-	userID := 1
-
+	// Получаем user_id из контекста
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found"})
+		return
+	}
+	fmt.Println("itemID", itemID, "userID", userID)
 	// Связываем элемент с черновиком заявки
-	req, err := h.Repository.LinkItemToDraftRequest(uint(userID), uint(intItemID))
+	req, err := h.Repository.LinkItemToDraftRequest(userID.(uint), uint(intItemID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

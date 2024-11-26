@@ -190,7 +190,7 @@ func (h *Handler) UpdateCall(ctx *gin.Context) {
 		return
 	}
 	fmt.Println("даты:", request.DeliveryDate)
-	layout := "2006-01-02" // Измените формат на этот, если вы передаете дату без времени
+	layout := "2006-01-02"
 	deliveryDate, err := time.Parse(layout, request.DeliveryDate)
 	if err != nil {
 		fmt.Println("Ошибка при парсинге даты:", err)
