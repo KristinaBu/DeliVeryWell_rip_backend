@@ -56,41 +56,6 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.DELETE(RiDomain+"/delete/:id", h.RoleMiddleware1(AdminRole, UserRole), h.DeleteDC)
 	router.PUT(RiDomain+"/count/:id", h.RoleMiddleware1(AdminRole, UserRole), h.UpdateDCCount)
 
-	/*/
-	/ домен услуги /delivery
-	router.GET(DeliveryDomain, h.RoleMiddleware1(AdminRole, UserRole, GuestRole), h.GetAllDelivery)
-	router.GET(DeliveryDomain+"/:id", h.GetDelivery)
-	router.POST(DeliveryDomain, h.RoleMiddleware(ds.User{IsAdmin: true}),
-		h.CreateDelivery) // without img
-	router.POST(DeliveryDomain+"/img/:id", h.RoleMiddleware(ds.User{IsAdmin: true}),
-		h.UploadImage)
-	router.PUT(DeliveryDomain+"/:id", h.RoleMiddleware(ds.User{IsAdmin: true}),
-		h.UpdateDelivery)
-	router.DELETE(DeliveryDomain+"/:id", h.RoleMiddleware(ds.User{IsAdmin: true}),
-		h.DeleteDelivery)
-	router.POST(DeliveryDomain+"/add/:id", h.RoleMiddleware(ds.User{IsAdmin: true}, ds.User{IsAdmin: false}),
-		h.AddDeliveryToCall)
-
-	// домен заявки /call
-	router.GET(CallDomain, h.RoleMiddleware(ds.User{IsAdmin: true}, ds.User{IsAdmin: false}),
-		h.GetCalls)
-	router.GET(CallDomain+"/:id", h.RoleMiddleware(ds.User{IsAdmin: true}, ds.User{IsAdmin: false}),
-		h.GetCall)
-	router.PUT(CallDomain+"/:id", h.RoleMiddleware(ds.User{IsAdmin: true}, ds.User{IsAdmin: false}),
-		h.UpdateCall)
-	router.PUT(CallDomain+"/form/:id", h.RoleMiddleware(ds.User{IsAdmin: true}),
-		h.FormCall)
-	router.PUT(CallDomain+"/complete/:id", h.RoleMiddleware(ds.User{IsAdmin: true}),
-		h.CompleteOrRejectCall)
-	router.DELETE(CallDomain+"/:id", h.RoleMiddleware(ds.User{IsAdmin: true}),
-		h.DeleteCall)
-
-	// домен м-м
-	router.DELETE(RiDomain+"/delete/:id", h.RoleMiddleware(ds.User{IsAdmin: true}, ds.User{IsAdmin: false}),
-		h.DeleteDC)
-	router.PUT(RiDomain+"/count/:id", h.RoleMiddleware(ds.User{IsAdmin: true}, ds.User{IsAdmin: false}),
-		h.UpdateDCCount)
-	*/
 	// домен пользователя
 	router.POST(UserDomain+"/register", h.RegUser)
 	router.PUT(UserDomain+"/update", h.UpdateUser)
